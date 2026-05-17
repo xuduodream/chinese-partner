@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+paddlepaddle
+paddleocr
+jieba
+pypinyin
+httpx
+python-dotenv
+python-multipart

@@ -1,0 +1,28 @@
+{
+  "name": "chinese-learning-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:local": "vite --mode local",
+    "dev:mobile": "vite --mode development",
+    "build": "vite build",
+    "build:staging": "vite build --mode staging",
+    "build:production": "vite build --mode production",
+    "preview": "vite preview",
+    "preview:staging": "vite preview --mode staging",
+    "preview:production": "vite preview --mode production"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^5.0.0"
+  }
+}
