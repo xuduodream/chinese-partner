@@ -177,7 +177,14 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
             setShowRenameModal(false);
             setDeckToRename(null);
           }}
-          onRename={(newName) => renameDeck(deckToRename.id, newName)}
+          onRename={async (newName) => {
+            const result = renameDeck(deckToRename.id, newName);
+            if (result.success) {
+              // Refresh the deck list to show updated name
+              loadDecks();
+            }
+            return result;
+          }}
           currentName={deckToRename.name}
           validateName={(name) => validateDeckName(name, deckToRename.profileId, deckToRename.id)}
           title="Rename Deck"

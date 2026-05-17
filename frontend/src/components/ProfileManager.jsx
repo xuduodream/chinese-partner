@@ -212,7 +212,18 @@ const ProfileManager = ({
         <RenameModal
           isOpen={showRenameModal}
           onClose={() => setShowRenameModal(false)}
-          onRename={(newName) => renameProfile(currentProfile.id, newName)}
+          onRename={async (newName) => {
+            const result = renameProfile(currentProfile.id, newName);
+            if (result.success) {
+              // Refresh profiles list and update current profile
+              loadProfiles();
+              const updatedProfile = getProfileById(currentProfile.id);
+              if (updatedProfile) {
+                onProfileChange(updatedProfile);
+              }
+            }
+            return result;
+          }}
           currentName={currentProfile.name}
           validateName={(name) => validateProfileName(name, currentProfile.id)}
           title="Rename Profile"
