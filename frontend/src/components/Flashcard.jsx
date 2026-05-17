@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { getDecks } from '../utils/storage';
 
-const Flashcard = ({ card, onSave }) => {
+const Flashcard = ({ card, onSave, currentDeck, onDeckSelect }) => {
   const [showBack, setShowBack] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showDeckSelector, setShowDeckSelector] = useState(false);
+  const [availableDecks, setAvailableDecks] = useState([]);
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
@@ -22,7 +25,22 @@ const Flashcard = ({ card, onSave }) => {
   };
 
   const handleSave = () => {
-    onSave(card);
+    if (currentDeck) {
+      // Save to current deck immediately
+      onSave(card, currentDeck.id);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } else {
+      // Show deck selector if no current deck
+      const decks = getDecks();
+      setAvailableDecks(decks);
+      setShowDeckSelector(true);
+    }
+  };
+
+  const handleSaveToDeck = (deckId) => {
+    onSave(card, deckId);
+    setShowDeckSelector(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -56,8 +74,46 @@ const Flashcard = ({ card, onSave }) => {
             onClick={(e) => { e.stopPropagation(); handleSave(); }}
             disabled={saved}
           >
-            {saved ? '✓ Saved!' : 'Save to Flashcards'}
+            {saved ? '✓ Saved!' : `Save to ${currentDeck ? currentDeck.name : 'Deck'}`}
           </button>
+
+          {/* Deck Selection Modal */}
+          {showDeckSelector && (
+            <div className="modal-overlay" onClick={() => setShowDeckSelector(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h3>Save to Deck</h3>
+                <p>Choose a deck to save this flashcard:</p>
+
+                {availableDecks.length === 0 ? (
+                  <div className="no-decks-message">
+                    No decks available. Please create a deck first.
+                  </div>
+                ) : (
+                  <div className="deck-selection-list">
+                    {availableDecks.map(deck => (
+                      <button
+                        key={deck.id}
+                        className="deck-selection-item"
+                        onClick={() => handleSaveToDeck(deck.id)}
+                      >
+                        <span className="deck-selection-name">{deck.name}</span>
+                        <span className="deck-selection-count">({deck.cardCount || 0} cards)</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="modal-actions">
+                  <button
+                    className="cancel-btn"
+                    onClick={() => setShowDeckSelector(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

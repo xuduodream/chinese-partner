@@ -1,13 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { getCards, deleteCard } from '../utils/storage';
+import { getCards, deleteCard, getDecks, renameDeck, validateDeckName } from '../utils/storage';
+import DeckReviewPage from './DeckReviewPage';
+import DeckMoveModal from './DeckMoveModal';
+import RenameModal from './RenameModal';
 
-const RevisionPage = () => {
-  const [cards, setCards] = useState([]);
-  const [selectedCard, setSelectedCard] = useState(null);
+const RevisionPage = ({ currentProfile, currentDeck }) => {
+  const [view, setView] = useState('deck-list'); // 'deck-list' or 'deck-review'
+  const [selectedDeck, setSelectedDeck] = useState(null);
+  const [decks, setDecks] = useState([]);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [deckToMove, setDeckToMove] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [deckToRename, setDeckToRename] = useState(null);
 
   useEffect(() => {
-    setCards(getCards());
-  }, []);
+    if (currentProfile) {
+      loadDecks();
+    }
+  }, [currentProfile]);
+
+  const loadDecks = () => {
+    if (!currentProfile) return;
+    const profileDecks = getDecks(currentProfile.id);
+    setDecks(profileDecks);
+  };
+
+  const handleDeckSelect = (deck) => {
+    setSelectedDeck(deck);
+    setView('deck-review');
+  };
+
+  const handleBackToDeckList = () => {
+    setView('deck-list');
+    setSelectedDeck(null);
+  };
+
+  const handleMoveDeck = (deck) => {
+    setDeckToMove(deck);
+    setShowMoveModal(true);
+  };
+
+  const handleMoveComplete = (result) => {
+    if (result.success) {
+      // Refresh the deck list since the deck moved away
+      loadDecks();
+    }
+  };
+
+  const handleRenameDeck = (deck) => {
+    setDeckToRename(deck);
+    setShowRenameModal(true);
+  };
+
+  const handleRenameComplete = (result) => {
+    if (result.success) {
+      // Refresh the deck list to show updated name
+      loadDecks();
+    }
+  };
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
@@ -26,56 +76,121 @@ const RevisionPage = () => {
     window.speechSynthesis.speak(utterance);
   };
 
-  const handleDelete = (id) => {
-    deleteCard(id);
-    setCards(getCards());
-    setSelectedCard(null);
-  };
+  if (view === 'deck-review') {
+    return <DeckReviewPage deck={selectedDeck} onBack={handleBackToDeckList} />;
+  }
 
   return (
     <div className="revision-page">
-      <h2>📚 My Flashcards</h2>
-      <div className="flashcard-list">
-        {cards.length === 0 ? (
-          <p>No flashcards yet. Import an image to create some!</p>
+      <div className="deck-list-view">
+        <div className="revision-header">
+          <h2>📚 Study Decks</h2>
+          {currentProfile && (
+            <div className="profile-info">
+              Profile: <strong>{currentProfile.name}</strong>
+            </div>
+          )}
+        </div>
+
+        {!currentProfile ? (
+          <div className="no-profile-state">
+            <p>Please select a profile first to view your decks.</p>
+          </div>
+        ) : decks.length === 0 ? (
+          <div className="empty-state">
+            <p>No decks in this profile yet.</p>
+            <p>Create your first deck to start organizing your flashcards!</p>
+          </div>
         ) : (
-          <div className="card-grid">
-            {cards.map(card => (
-              <div key={card.id} className="review-card">
-                <div className="review-front">
-                  <h3>{card.original}</h3>
-                  <p className="pinyin">{card.pinyin}</p>
-                  <button onClick={() => setSelectedCard(selectedCard?.id === card.id ? null : card)}>
-                    {selectedCard?.id === card.id ? 'Hide' : 'Show Explanation'}
-                  </button>
-                </div>
-
-                {selectedCard?.id === card.id && (
-                  <div className="review-back">
-                    <p><strong>Translation:</strong> {card.translation}</p>
-                    <p><strong>Context:</strong> {card.context}</p>
-                    <p><strong>Grammar:</strong> {card.grammar}</p>
-                    <p><strong>Example:</strong> {card.example}</p>
-
-                    <div className="audio-buttons">
-                      <button onClick={() => speak(card.original, 'zh-CN')}>
-                        🔊 Chinese
+          <div className="decks-grid">
+            {decks.map(deck => {
+              const deckCards = getCards(deck.id);
+              return (
+                <div
+                  key={deck.id}
+                  className="deck-card"
+                  onClick={() => handleDeckSelect(deck)}
+                >
+                  <div className="deck-card-header">
+                    <h3>{deck.name}</h3>
+                    <div className="deck-actions">
+                      <span className="card-count">{deckCards.length} cards</span>
+                      <button
+                        className="rename-deck-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRenameDeck(deck);
+                        }}
+                        title="Rename deck"
+                      >
+                        ✏️ Rename
                       </button>
-                      <button onClick={() => speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US')}>
-                        🔊 Translation
+                      <button
+                        className="move-deck-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveDeck(deck);
+                        }}
+                        title="Move deck to another profile"
+                      >
+                        📁 Move
                       </button>
                     </div>
-
-                    <button className="delete-btn" onClick={() => handleDelete(card.id)}>
-                      Delete Card
-                    </button>
                   </div>
-                )}
-              </div>
-            ))}
+                  {deck.description && (
+                    <p className="deck-description">{deck.description}</p>
+                  )}
+                  <div className="deck-meta">
+                    <span>Created: {new Date(deck.createdAt).toLocaleDateString()}</span>
+                    {deck.lastStudied && (
+                      <span>• Last studied: {new Date(deck.lastStudied).toLocaleDateString()}</span>
+                    )}
+                  </div>
+                  <div className="study-now-btn">
+                    Study Now →
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* Move Deck Modal */}
+      {showMoveModal && deckToMove && (
+        <DeckMoveModal
+          deck={deckToMove}
+          currentProfile={currentProfile}
+          onClose={() => {
+            setShowMoveModal(false);
+            setDeckToMove(null);
+          }}
+          onMoveComplete={handleMoveComplete}
+        />
+      )}
+
+      {/* Rename Deck Modal */}
+      {showRenameModal && deckToRename && (
+        <RenameModal
+          isOpen={showRenameModal}
+          onClose={() => {
+            setShowRenameModal(false);
+            setDeckToRename(null);
+          }}
+          onRename={async (newName) => {
+            const result = renameDeck(deckToRename.id, newName);
+            if (result.success) {
+              // Refresh the deck list to show updated name
+              loadDecks();
+            }
+            return result;
+          }}
+          currentName={deckToRename.name}
+          validateName={(name) => validateDeckName(name, deckToRename.profileId, deckToRename.id)}
+          title="Rename Deck"
+          itemType="Deck"
+        />
+      )}
     </div>
   );
 };
