@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDecks, createDeck, getDeckById, deleteDeck } from '../utils/storage';
+import { getDecks, createDeck, getDeckById, deleteDeck, getAvailableTargetProfiles, moveDeck } from '../utils/storage';
 
 const DeckManager = ({
   currentProfile,
@@ -80,6 +80,37 @@ const DeckManager = ({
     }
   };
 
+  const handleQuickMove = (deckId) => {
+    const availableProfiles = getAvailableTargetProfiles(deckId);
+
+    if (availableProfiles.length === 0) {
+      alert('No other profiles available to move this deck to. Create another profile first.');
+      return;
+    }
+
+    // Simple prompt for quick move (for now, move to first available profile)
+    const targetProfile = availableProfiles[0];
+    const deck = getDeckById(deckId);
+
+    if (window.confirm(`Move deck "${deck.name}" to profile "${targetProfile.name}"?`)) {
+      const result = moveDeck(deckId, targetProfile.id);
+
+      if (result.success) {
+        loadDecks();
+
+        // If we moved the current deck, clear selection
+        if (currentDeck && currentDeck.id === deckId) {
+          onDeckChange(null);
+        }
+
+        // Show success feedback
+        console.log(`Deck moved successfully to ${targetProfile.name}`);
+      } else {
+        alert(`Failed to move deck: ${result.message}`);
+      }
+    }
+  };
+
   if (!currentProfile) {
     return (
       <div className="deck-manager">
@@ -143,6 +174,16 @@ const DeckManager = ({
                     title="Delete deck"
                   >
                     🗑️
+                  </button>
+                  <button
+                    className="move-deck-dropdown-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuickMove(deck.id);
+                    }}
+                    title="Move deck to another profile"
+                  >
+                    📁
                   </button>
                 </div>
               ))}

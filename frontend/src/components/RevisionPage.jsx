@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getCards, deleteCard, getDecks } from '../utils/storage';
 import DeckReviewPage from './DeckReviewPage';
+import DeckMoveModal from './DeckMoveModal';
 
 const RevisionPage = ({ currentProfile, currentDeck }) => {
   const [view, setView] = useState('deck-list'); // 'deck-list' or 'deck-review'
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [decks, setDecks] = useState([]);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [deckToMove, setDeckToMove] = useState(null);
 
   useEffect(() => {
     if (currentProfile) {
@@ -27,6 +30,18 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
   const handleBackToDeckList = () => {
     setView('deck-list');
     setSelectedDeck(null);
+  };
+
+  const handleMoveDeck = (deck) => {
+    setDeckToMove(deck);
+    setShowMoveModal(true);
+  };
+
+  const handleMoveComplete = (result) => {
+    if (result.success) {
+      // Refresh the deck list since the deck moved away
+      loadDecks();
+    }
   };
 
   const speak = (text, langCode) => {
@@ -83,7 +98,19 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
                 >
                   <div className="deck-card-header">
                     <h3>{deck.name}</h3>
-                    <span className="card-count">{deckCards.length} cards</span>
+                    <div className="deck-actions">
+                      <span className="card-count">{deckCards.length} cards</span>
+                      <button
+                        className="move-deck-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveDeck(deck);
+                        }}
+                        title="Move deck to another profile"
+                      >
+                        📁 Move
+                      </button>
+                    </div>
                   </div>
                   {deck.description && (
                     <p className="deck-description">{deck.description}</p>
@@ -103,6 +130,19 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
           </div>
         )}
       </div>
+
+      {/* Move Deck Modal */}
+      {showMoveModal && deckToMove && (
+        <DeckMoveModal
+          deck={deckToMove}
+          currentProfile={currentProfile}
+          onClose={() => {
+            setShowMoveModal(false);
+            setDeckToMove(null);
+          }}
+          onMoveComplete={handleMoveComplete}
+        />
+      )}
     </div>
   );
 };

@@ -212,5 +212,68 @@ const updateDeckCardCount = (deckId) => {
   updateDeck(deckId, { cardCount: deckCards.length });
 };
 
+// Deck movement functionality
+export const moveDeck = (deckId, targetProfileId) => {
+  try {
+    const deck = getDeckById(deckId);
+    const targetProfile = getProfileById(targetProfileId);
+    const profiles = getProfiles();
+
+    // Validation
+    if (!deck) {
+      throw new Error('Deck not found');
+    }
+    if (!targetProfile) {
+      throw new Error('Target profile not found');
+    }
+    if (deck.profileId === targetProfileId) {
+      throw new Error('Cannot move deck to the same profile');
+    }
+
+    const sourceProfile = profiles.find(p => p.id === deck.profileId);
+    if (!sourceProfile) {
+      throw new Error('Source profile not found');
+    }
+
+    // Perform the move operation
+    // 1. Update deck's profileId
+    updateDeck(deckId, { profileId: targetProfileId });
+
+    // 2. Remove deck from source profile's decks array
+    const sourceProfileUpdated = {
+      ...sourceProfile,
+      decks: sourceProfile.decks.filter(id => id !== deckId)
+    };
+
+    // 3. Add deck to target profile's decks array
+    const targetProfileUpdated = {
+      ...targetProfile,
+      decks: [...targetProfile.decks, deckId]
+    };
+
+    // 4. Update both profiles
+    const updatedProfiles = profiles.map(profile => {
+      if (profile.id === sourceProfile.id) return sourceProfileUpdated;
+      if (profile.id === targetProfile.id) return targetProfileUpdated;
+      return profile;
+    });
+
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(updatedProfiles));
+
+    return { success: true, message: `Deck "${deck.name}" moved successfully` };
+  } catch (error) {
+    console.error('Error moving deck:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const getAvailableTargetProfiles = (deckId) => {
+  const deck = getDeckById(deckId);
+  if (!deck) return [];
+
+  const profiles = getProfiles();
+  return profiles.filter(profile => profile.id !== deck.profileId);
+};
+
 // Legacy compatibility - alias for existing code
 export const getLegacyCardsAlias = getLegacyCards;
