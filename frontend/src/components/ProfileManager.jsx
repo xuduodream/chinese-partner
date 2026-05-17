@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getProfiles, createProfile, getProfileById, deleteProfile, getDecks } from '../utils/storage';
+import { getProfiles, createProfile, getProfileById, deleteProfile, getDecks, renameProfile, validateProfileName } from '../utils/storage';
+import RenameModal from './RenameModal';
 
 const ProfileManager = ({
   currentProfile,
@@ -11,6 +12,7 @@ const ProfileManager = ({
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileDescription, setNewProfileDescription] = useState('');
   const [newProfileLang, setNewProfileLang] = useState('en');
+  const [showRenameModal, setShowRenameModal] = useState(false);
 
   useEffect(() => {
     loadProfiles();
@@ -105,6 +107,17 @@ const ProfileManager = ({
           + New Profile
         </button>
 
+        {/* Rename Profile Button */}
+        {currentProfile && (
+          <button
+            className="rename-profile-btn"
+            onClick={() => setShowRenameModal(true)}
+            title="Rename profile"
+          >
+            ✏️ Rename
+          </button>
+        )}
+
         {/* Delete Profile Button */}
         {currentProfile && (
           <button
@@ -192,6 +205,19 @@ const ProfileManager = ({
             )}
           </small>
         </div>
+      )}
+
+      {/* Rename Profile Modal */}
+      {currentProfile && (
+        <RenameModal
+          isOpen={showRenameModal}
+          onClose={() => setShowRenameModal(false)}
+          onRename={(newName) => renameProfile(currentProfile.id, newName)}
+          currentName={currentProfile.name}
+          validateName={(name) => validateProfileName(name, currentProfile.id)}
+          title="Rename Profile"
+          itemType="Profile"
+        />
       )}
     </div>
   );

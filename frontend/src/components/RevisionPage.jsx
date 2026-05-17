@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getCards, deleteCard, getDecks } from '../utils/storage';
+import { getCards, deleteCard, getDecks, renameDeck, validateDeckName } from '../utils/storage';
 import DeckReviewPage from './DeckReviewPage';
 import DeckMoveModal from './DeckMoveModal';
+import RenameModal from './RenameModal';
 
 const RevisionPage = ({ currentProfile, currentDeck }) => {
   const [view, setView] = useState('deck-list'); // 'deck-list' or 'deck-review'
@@ -9,6 +10,8 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
   const [decks, setDecks] = useState([]);
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [deckToMove, setDeckToMove] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [deckToRename, setDeckToRename] = useState(null);
 
   useEffect(() => {
     if (currentProfile) {
@@ -40,6 +43,18 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
   const handleMoveComplete = (result) => {
     if (result.success) {
       // Refresh the deck list since the deck moved away
+      loadDecks();
+    }
+  };
+
+  const handleRenameDeck = (deck) => {
+    setDeckToRename(deck);
+    setShowRenameModal(true);
+  };
+
+  const handleRenameComplete = (result) => {
+    if (result.success) {
+      // Refresh the deck list to show updated name
       loadDecks();
     }
   };
@@ -101,6 +116,16 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
                     <div className="deck-actions">
                       <span className="card-count">{deckCards.length} cards</span>
                       <button
+                        className="rename-deck-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRenameDeck(deck);
+                        }}
+                        title="Rename deck"
+                      >
+                        ✏️ Rename
+                      </button>
+                      <button
                         className="move-deck-btn"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -141,6 +166,22 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
             setDeckToMove(null);
           }}
           onMoveComplete={handleMoveComplete}
+        />
+      )}
+
+      {/* Rename Deck Modal */}
+      {showRenameModal && deckToRename && (
+        <RenameModal
+          isOpen={showRenameModal}
+          onClose={() => {
+            setShowRenameModal(false);
+            setDeckToRename(null);
+          }}
+          onRename={(newName) => renameDeck(deckToRename.id, newName)}
+          currentName={deckToRename.name}
+          validateName={(name) => validateDeckName(name, deckToRename.profileId, deckToRename.id)}
+          title="Rename Deck"
+          itemType="Deck"
         />
       )}
     </div>

@@ -275,5 +275,111 @@ export const getAvailableTargetProfiles = (deckId) => {
   return profiles.filter(profile => profile.id !== deck.profileId);
 };
 
+// Name validation and rename functionality
+export const validateProfileName = (name, excludeId = null) => {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, message: 'Name is required' };
+  }
+
+  const trimmedName = name.trim();
+  if (trimmedName === '') {
+    return { valid: false, message: 'Name cannot be empty' };
+  }
+
+  const profiles = getProfiles();
+  const nameExists = profiles.some(profile =>
+    profile.id !== excludeId &&
+    profile.name.toLowerCase() === trimmedName.toLowerCase()
+  );
+
+  if (nameExists) {
+    return { valid: false, message: 'A profile with this name already exists' };
+  }
+
+  return { valid: true };
+};
+
+export const validateDeckName = (name, profileId, excludeId = null) => {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, message: 'Name is required' };
+  }
+
+  const trimmedName = name.trim();
+  if (trimmedName === '') {
+    return { valid: false, message: 'Name cannot be empty' };
+  }
+
+  const profileDecks = getDecks(profileId);
+  const nameExists = profileDecks.some(deck =>
+    deck.id !== excludeId &&
+    deck.name.toLowerCase() === trimmedName.toLowerCase()
+  );
+
+  if (nameExists) {
+    return { valid: false, message: 'A deck with this name already exists in this profile' };
+  }
+
+  return { valid: true };
+};
+
+export const renameProfile = (profileId, newName) => {
+  try {
+    const validation = validateProfileName(newName, profileId);
+    if (!validation.valid) {
+      return { success: false, message: validation.message };
+    }
+
+    const profiles = getProfiles();
+    const profileIndex = profiles.findIndex(p => p.id === profileId);
+
+    if (profileIndex === -1) {
+      return { success: false, message: 'Profile not found' };
+    }
+
+    profiles[profileIndex] = {
+      ...profiles[profileIndex],
+      name: newName.trim()
+    };
+
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+    return { success: true, message: 'Profile renamed successfully' };
+  } catch (error) {
+    console.error('Error renaming profile:', error);
+    return { success: false, message: 'Failed to rename profile' };
+  }
+};
+
+export const renameDeck = (deckId, newName) => {
+  try {
+    const deck = getDeckById(deckId);
+    if (!deck) {
+      return { success: false, message: 'Deck not found' };
+    }
+
+    const validation = validateDeckName(newName, deck.profileId, deckId);
+    if (!validation.valid) {
+      return { success: false, message: validation.message };
+    }
+
+    const decks = getDecks();
+    const deckIndex = decks.findIndex(d => d.id === deckId);
+
+    if (deckIndex === -1) {
+      return { success: false, message: 'Deck not found' };
+    }
+
+    decks[deckIndex] = {
+      ...decks[deckIndex],
+      name: newName.trim()
+    };
+
+    localStorage.setItem(DECKS_KEY, JSON.stringify(decks));
+    return { success: true, message: 'Deck renamed successfully' };
+  } catch (error) {
+    console.error('Error renaming deck:', error);
+    return { success: false, message: 'Failed to rename deck' };
+  }
+};
+
 // Legacy compatibility - alias for existing code
 export const getLegacyCardsAlias = getLegacyCards;

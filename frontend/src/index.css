@@ -769,6 +769,90 @@ header {
   margin-top: 15px;
 }
 
+/* Profile Rename Styles */
+.rename-profile-btn {
+  background: #FF9800;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.rename-profile-btn:hover {
+  background: #F57C00;
+}
+
+/* Deck Rename Styles */
+.rename-deck-btn {
+  background: #FF9800;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.rename-deck-btn:hover {
+  background: #F57C00;
+}
+
+.rename-deck-dropdown-btn {
+  background: none;
+  border: none;
+  color: #FF9800;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 16px;
+}
+
+.rename-deck-dropdown-btn:hover {
+  background: #fff3e0;
+}
+
+/* Rename Modal Styles */
+.info-message {
+  background: #e8f5e8;
+  color: #2e7d32;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.success-message {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.save-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.save-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
 .nav-buttons button:not(.active) {
   background: white;
   color: #333;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getDecks, createDeck, getDeckById, deleteDeck, getAvailableTargetProfiles, moveDeck } from '../utils/storage';
+import { getDecks, createDeck, getDeckById, deleteDeck, getAvailableTargetProfiles, moveDeck, renameDeck, validateDeckName } from '../utils/storage';
+import RenameModal from './RenameModal';
 
 const DeckManager = ({
   currentProfile,
@@ -12,6 +13,8 @@ const DeckManager = ({
   const [showDeckList, setShowDeckList] = useState(false);
   const [newDeckName, setNewDeckName] = useState('');
   const [newDeckDescription, setNewDeckDescription] = useState('');
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [deckToRename, setDeckToRename] = useState(null);
 
   useEffect(() => {
     if (currentProfile) {
@@ -185,6 +188,17 @@ const DeckManager = ({
                   >
                     📁
                   </button>
+                  <button
+                    className="rename-deck-dropdown-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeckToRename(deck);
+                      setShowRenameModal(true);
+                    }}
+                    title="Rename deck"
+                  >
+                    ✏️
+                  </button>
                 </div>
               ))}
             </div>
@@ -258,6 +272,22 @@ const DeckManager = ({
             )}
           </small>
         </div>
+      )}
+
+      {/* Rename Deck Modal */}
+      {deckToRename && (
+        <RenameModal
+          isOpen={showRenameModal}
+          onClose={() => {
+            setShowRenameModal(false);
+            setDeckToRename(null);
+          }}
+          onRename={(newName) => renameDeck(deckToRename.id, newName)}
+          currentName={deckToRename.name}
+          validateName={(name) => validateDeckName(name, deckToRename.profileId, deckToRename.id)}
+          title="Rename Deck"
+          itemType="Deck"
+        />
       )}
     </div>
   );
