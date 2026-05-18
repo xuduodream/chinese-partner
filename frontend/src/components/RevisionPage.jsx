@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getCards, deleteCard, getDecks, renameDeck, validateDeckName, deleteDeck } from '../utils/storage';
+import { getCards, deleteCard, getDecks, renameDeck, validateDeckName, deleteDeck, getDeckStudyStats } from '../utils/storage';
 import DeckReviewPage from './DeckReviewPage';
+import StudySession from './StudySession';
 import DeckMoveModal from './DeckMoveModal';
 import RenameModal from './RenameModal';
 
 const RevisionPage = ({ currentProfile, currentDeck }) => {
-  const [view, setView] = useState('deck-list'); // 'deck-list' or 'deck-review'
+  const [view, setView] = useState('deck-list'); // 'deck-list', 'deck-review', or 'study-session'
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [decks, setDecks] = useState([]);
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -30,7 +31,17 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
     setView('deck-review');
   };
 
+  const handleStudySession = (deck) => {
+    setSelectedDeck(deck);
+    setView('study-session');
+  };
+
   const handleBackToDeckList = () => {
+    setView('deck-list');
+    setSelectedDeck(null);
+  };
+
+  const handleStudyComplete = () => {
     setView('deck-list');
     setSelectedDeck(null);
   };
@@ -111,6 +122,10 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
     return <DeckReviewPage deck={selectedDeck} onBack={handleBackToDeckList} />;
   }
 
+  if (view === 'study-session') {
+    return <StudySession deck={selectedDeck} onComplete={handleStudyComplete} />;
+  }
+
   return (
     <div className="revision-page">
       <div className="deck-list-view">
@@ -137,15 +152,16 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
             {decks.map(deck => {
               const deckCards = getCards(deck.id);
               return (
-                <div
-                  key={deck.id}
-                  className="deck-card"
-                  onClick={() => handleDeckSelect(deck)}
-                >
+                <div key={deck.id} className="deck-card-enhanced">
                   <div className="deck-card-header">
                     <h3>{deck.name}</h3>
                     <div className="deck-actions">
-                      <span className="card-count">{deckCards.length} cards</span>
+                      <span className="card-count" onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeckSelect(deck);
+                      }}>
+                        {deckCards.length} cards
+                      </span>
                       <div className="actions-dropdown">
                         <button
                           className="actions-btn"
@@ -193,17 +209,32 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
                       </div>
                     </div>
                   </div>
+
                   {deck.description && (
                     <p className="deck-description">{deck.description}</p>
                   )}
+
                   <div className="deck-meta">
                     <span>Created: {new Date(deck.createdAt).toLocaleDateString()}</span>
                     {deck.lastStudied && (
                       <span>• Last studied: {new Date(deck.lastStudied).toLocaleDateString()}</span>
                     )}
                   </div>
-                  <div className="study-now-btn">
-                    Study Now →
+
+                  <div className="deck-action-buttons">
+                    <button
+                      className="view-btn"
+                      onClick={() => handleDeckSelect(deck)}
+                    >
+                      View Cards
+                    </button>
+                    <button
+                      className="study-btn"
+                      onClick={() => handleStudySession(deck)}
+                      disabled={deckCards.length === 0}
+                    >
+                      Study Now
+                    </button>
                   </div>
                 </div>
               );

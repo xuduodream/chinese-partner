@@ -431,5 +431,53 @@ export const getAvailableTargetDecks = (cardId) => {
   return profileDecks.filter(deck => deck.id !== card.deckId);
 };
 
+// Card difficulty tracking for study sessions
+export const updateCardDifficulty = (cardId, difficulty) => {
+  try {
+    const cards = getCards();
+    const cardIndex = cards.findIndex(card => card.id === cardId);
+
+    if (cardIndex === -1) {
+      return { success: false, message: 'Card not found' };
+    }
+
+    cards[cardIndex] = {
+      ...cards[cardIndex],
+      difficulty,
+      lastReviewed: new Date().toISOString(),
+      reviewCount: (cards[cardIndex].reviewCount || 0) + 1
+    };
+
+    localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(cards));
+    return { success: true, message: 'Card difficulty updated' };
+  } catch (error) {
+    console.error('Error updating card difficulty:', error);
+    return { success: false, message: 'Failed to update card difficulty' };
+  }
+};
+
+export const getCardDifficulty = (cardId) => {
+  const cards = getCards();
+  const card = cards.find(card => card.id === cardId);
+  return card?.difficulty || 'new';
+};
+
+export const getDeckStudyStats = (deckId) => {
+  const cards = getDeckCards(deckId);
+  const studied = cards.filter(card => card.reviewCount > 0).length;
+  const difficulties = cards.reduce((acc, card) => {
+    const difficulty = card.difficulty || 'new';
+    acc[difficulty] = (acc[difficulty] || 0) + 1;
+    return acc;
+  }, {});
+
+  return {
+    totalCards: cards.length,
+    studiedCards: studied,
+    newCards: cards.length - studied,
+    difficultyBreakdown: difficulties
+  };
+};
+
 // Legacy compatibility - alias for existing code
 export const getLegacyCardsAlias = getLegacyCards;
