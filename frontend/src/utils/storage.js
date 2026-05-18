@@ -381,5 +381,55 @@ export const renameDeck = (deckId, newName) => {
   }
 };
 
+// Move card to another deck
+export const moveCard = (cardId, targetDeckId) => {
+  try {
+    const cards = getCards();
+    const cardIndex = cards.findIndex(c => c.id === cardId);
+
+    if (cardIndex === -1) {
+      return { success: false, message: 'Card not found' };
+    }
+
+    const card = cards[cardIndex];
+    const sourceDeckId = card.deckId;
+
+    if (sourceDeckId === targetDeckId) {
+      return { success: false, message: 'Card is already in this deck' };
+    }
+
+    // Update the card's deckId
+    cards[cardIndex] = {
+      ...card,
+      deckId: targetDeckId
+    };
+
+    localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(cards));
+
+    // Update card counts for both decks
+    updateDeckCardCount(sourceDeckId);
+    updateDeckCardCount(targetDeckId);
+
+    return { success: true, message: 'Card moved successfully' };
+  } catch (error) {
+    console.error('Error moving card:', error);
+    return { success: false, message: 'Failed to move card' };
+  }
+};
+
+// Get decks in the same profile (excluding current deck)
+export const getAvailableTargetDecks = (cardId) => {
+  const cards = getCards();
+  const card = cards.find(c => c.id === cardId);
+
+  if (!card) return [];
+
+  const currentDeck = getDeckById(card.deckId);
+  if (!currentDeck) return [];
+
+  const profileDecks = getDecks(currentDeck.profileId);
+  return profileDecks.filter(deck => deck.id !== card.deckId);
+};
+
 // Legacy compatibility - alias for existing code
 export const getLegacyCardsAlias = getLegacyCards;

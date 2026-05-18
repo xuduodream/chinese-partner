@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { getCards, deleteCard, getDeckById } from '../utils/storage';
+import { getCards, deleteCard, getDeckById, moveCard, getAvailableTargetDecks } from '../utils/storage';
 
 const DeckReviewPage = ({ deck, onBack }) => {
   const [cards, setCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [cardToMove, setCardToMove] = useState(null);
+  const [availableDecks, setAvailableDecks] = useState([]);
+  const [selectedTargetDeck, setSelectedTargetDeck] = useState('');
 
   useEffect(() => {
     if (deck) {
@@ -37,6 +41,28 @@ const DeckReviewPage = ({ deck, onBack }) => {
     deleteCard(id);
     loadCards();
     setSelectedCard(null);
+  };
+
+  const handleMoveCard = (card) => {
+    setCardToMove(card);
+    const decks = getAvailableTargetDecks(card.id);
+    setAvailableDecks(decks);
+    setShowMoveModal(true);
+  };
+
+  const handleMoveToDeck = (targetDeckId) => {
+    if (!cardToMove) return;
+
+    const result = moveCard(cardToMove.id, targetDeckId);
+    if (result.success) {
+      setShowMoveModal(false);
+      setCardToMove(null);
+      setSelectedTargetDeck('');
+      loadCards(); // Refresh the card list
+      setSelectedCard(null);
+    } else {
+      alert(result.message);
+    }
   };
 
   if (!deck) {
@@ -97,9 +123,14 @@ const DeckReviewPage = ({ deck, onBack }) => {
                       </button>
                     </div>
 
-                    <button className="delete-btn" onClick={() => handleDelete(card.id)}>
-                      Delete Card
-                    </button>
+                    <div className="card-actions">
+                      <button className="move-btn" onClick={() => handleMoveCard(card)}>
+                        📁 Move to Deck
+                      </button>
+                      <button className="delete-btn" onClick={() => handleDelete(card.id)}>
+                        Delete Card
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -107,6 +138,62 @@ const DeckReviewPage = ({ deck, onBack }) => {
           </div>
         )}
       </div>
+      {/* Move Card Modal */}
+      {showMoveModal && cardToMove && (
+        <div className="modal-overlay" onClick={() => setShowMoveModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Move Card to Another Deck</h3>
+            <p>Choose a deck to move this card to:</p>
+
+            {availableDecks.length === 0 ? (
+              <div className="no-decks-message">
+                No other decks available in this profile.
+              </div>
+            ) : (
+              <div className="move-card-form">
+                <div className="form-group">
+                  <label htmlFor="target-deck">Select Target Deck:</label>
+                  <select
+                    id="target-deck"
+                    value={selectedTargetDeck}
+                    onChange={(e) => setSelectedTargetDeck(e.target.value)}
+                  >
+                    <option value="">Select a deck...</option>
+                    {availableDecks.map(deck => (
+                      <option key={deck.id} value={deck.id}>
+                        {deck.name} ({deck.cardCount || 0} cards)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="modal-actions">
+                  <button
+                    className="cancel-btn"
+                    onClick={() => {
+                      setShowMoveModal(false);
+                      setSelectedTargetDeck('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="save-btn"
+                    onClick={() => {
+                      if (selectedTargetDeck) {
+                        handleMoveToDeck(selectedTargetDeck);
+                      }
+                    }}
+                    disabled={!selectedTargetDeck}
+                  >
+                    Move Card
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

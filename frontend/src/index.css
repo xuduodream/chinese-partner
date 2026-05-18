@@ -655,6 +655,72 @@ header {
   color: #666;
 }
 
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.move-btn {
+  padding: 8px 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.move-btn:hover {
+  background: #45a049;
+}
+
+.move-card-form {
+  margin-top: 15px;
+}
+
+.move-card-form .form-group {
+  margin-bottom: 15px;
+}
+
+.move-card-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.move-card-form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #333;
+}
+
+.move-card-form select option {
+  color: #333;
+  background: white;
+}
+
+.delete-btn {
+  padding: 8px 12px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.delete-btn:hover {
+  background: #da190b;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .decks-grid {
