@@ -531,7 +531,7 @@ header {
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .deck-card:hover {
@@ -674,6 +674,132 @@ header {
 
 .move-btn:hover {
   background: #45a049;
+}
+
+.actions-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.actions-btn {
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.actions-btn:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.actions-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 120px;
+}
+
+.action-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.2s;
+}
+
+.action-item:hover {
+  background: #f8f9fa;
+}
+
+.action-item.delete-action {
+  color: #d32f2f;
+}
+
+.action-item.delete-action:hover {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Dual dropdown design */
+.card-bottom-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.audio-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.audio-btn {
+  padding: 8px 12px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.audio-btn:hover {
+  background: #1976D2;
+}
+
+.audio-menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 140px;
+}
+
+.audio-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.2s;
+}
+
+.audio-item:hover {
+  background: #f8f9fa;
+}
+
+.audio-item:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+
+.action-item:not(:last-child) {
+  border-bottom: 1px solid #eee;
 }
 
 .move-card-form {

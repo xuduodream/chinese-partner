@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCards, deleteCard, getDecks, renameDeck, validateDeckName } from '../utils/storage';
+import { getCards, deleteCard, getDecks, renameDeck, validateDeckName, deleteDeck } from '../utils/storage';
 import DeckReviewPage from './DeckReviewPage';
 import DeckMoveModal from './DeckMoveModal';
 import RenameModal from './RenameModal';
@@ -47,6 +47,22 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
     }
   };
 
+  const handleDeleteDeck = (deck) => {
+    const deckCards = getCards(deck.id);
+    if (deckCards.length > 0) {
+      if (!window.confirm(`Are you sure you want to delete the deck "${deck.name}"? This will also delete ${deckCards.length} cards in this deck. This action cannot be undone.`)) {
+        return;
+      }
+    } else {
+      if (!window.confirm(`Are you sure you want to delete the deck "${deck.name}"? This action cannot be undone.`)) {
+        return;
+      }
+    }
+
+    deleteDeck(deck.id);
+    loadDecks();
+  };
+
   const handleRenameDeck = (deck) => {
     setDeckToRename(deck);
     setShowRenameModal(true);
@@ -58,6 +74,21 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
       loadDecks();
     }
   };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.actions-dropdown')) {
+        const dropdowns = document.querySelectorAll('.actions-menu');
+        dropdowns.forEach(dropdown => {
+          dropdown.style.display = 'none';
+        });
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
@@ -115,26 +146,51 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
                     <h3>{deck.name}</h3>
                     <div className="deck-actions">
                       <span className="card-count">{deckCards.length} cards</span>
-                      <button
-                        className="rename-deck-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRenameDeck(deck);
-                        }}
-                        title="Rename deck"
-                      >
-                        ✏️ Rename
-                      </button>
-                      <button
-                        className="move-deck-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveDeck(deck);
-                        }}
-                        title="Move deck to another profile"
-                      >
-                        📁 Move
-                      </button>
+                      <div className="actions-dropdown">
+                        <button
+                          className="actions-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const dropdown = e.currentTarget.nextElementSibling;
+                            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                          }}
+                          title="Deck actions"
+                        >
+                          ⋮
+                        </button>
+                        <div className="actions-menu">
+                          <button
+                            className="action-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRenameDeck(deck);
+                              e.currentTarget.closest('.actions-menu').style.display = 'none';
+                            }}
+                          >
+                            ✏️ Rename
+                          </button>
+                          <button
+                            className="action-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveDeck(deck);
+                              e.currentTarget.closest('.actions-menu').style.display = 'none';
+                            }}
+                          >
+                            📁 Move
+                          </button>
+                          <button
+                            className="action-item delete-action"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteDeck(deck);
+                              e.currentTarget.closest('.actions-menu').style.display = 'none';
+                            }}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   {deck.description && (
