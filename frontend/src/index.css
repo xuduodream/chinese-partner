@@ -620,16 +620,19 @@ header {
 
 .back-btn {
   padding: 8px 16px;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  background: #2196F3;
+  color: white;
+  border: 1px solid #1976D2;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
   transition: all 0.2s;
 }
 
 .back-btn:hover {
-  background: #e0e0e0;
+  background: #1976D2;
+  border-color: #1565C0;
 }
 
 .deck-review-header h2 {

@@ -56,8 +56,11 @@ const Flashcard = ({ card, onSave, currentDeck, onDeckSelect }) => {
       {showBack && (
         <div className="back">
           <p><strong>Translation:</strong> {card.translation}</p>
+          <br />
           <p><strong>Context:</strong> {card.context}</p>
+          <br />
           <p><strong>Grammar:</strong> {card.grammar}</p>
+          <br />
           <p><strong>Example:</strong> {card.example}</p>
 
           <div className="audio-buttons">
