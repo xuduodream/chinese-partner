@@ -223,12 +223,6 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
 
                   <div className="deck-action-buttons">
                     <button
-                      className="view-btn"
-                      onClick={() => handleDeckSelect(deck)}
-                    >
-                      View Cards
-                    </button>
-                    <button
                       className="study-btn"
                       onClick={() => handleStudySession(deck)}
                       disabled={deckCards.length === 0}

@@ -559,14 +559,6 @@ header {
   gap: 8px;
 }
 
-.card-count {
-  background: #e3f2fd;
-  color: #1976D2;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
 
 .move-deck-btn {
   background: #2196F3;
@@ -886,11 +878,20 @@ header {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  border: 1px solid #bbdefb;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
+
 .card-count:hover {
-  background: #bbdefb;
+  background: #1976D2;
+  color: white;
+  border-color: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
 }
 
 .deck-description {
@@ -915,7 +916,7 @@ header {
   margin-top: 16px;
 }
 
-.view-btn, .study-btn {
+.study-btn {
   flex: 1;
   padding: 12px 16px;
   border: none;
@@ -927,16 +928,6 @@ header {
   text-align: center;
 }
 
-.view-btn {
-  background: #f5f5f5;
-  color: #333;
-  border: 1px solid #e0e0e0;
-}
-
-.view-btn:hover {
-  background: #eeeeee;
-  border-color: #d0d0d0;
-}
 
 .study-btn {
   background: #2196F3;
