@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getCards, updateCardDifficulty } from '../utils/storage';
+import { ProgressBar, StudyStats } from './ProgressStats';
 
 const StudySession = ({ deck, onComplete }) => {
   const [cards, setCards] = useState([]);
@@ -36,7 +37,7 @@ const StudySession = ({ deck, onComplete }) => {
 
   const currentCard = cards[currentIndex];
 
-  const handleRating = (difficulty) => {
+  const handleRating = useCallback((difficulty) => {
     // Update card difficulty in storage
     updateCardDifficulty(currentCard.id, difficulty);
 
@@ -54,7 +55,38 @@ const StudySession = ({ deck, onComplete }) => {
     } else {
       onComplete();
     }
-  };
+  }, [currentCard?.id, currentIndex, cards.length, onComplete]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (!showAnswer) return;
+
+      switch (event.key) {
+        case '1':
+        case 'h':
+          handleRating('hard');
+          break;
+        case '2':
+        case 'g':
+          handleRating('good');
+          break;
+        case '3':
+        case 'e':
+          handleRating('easy');
+          break;
+        case ' ':
+          event.preventDefault();
+          setShowAnswer(true);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showAnswer, handleRating]);
 
   if (!currentCard) {
     return <div>Loading...</div>;
@@ -64,13 +96,19 @@ const StudySession = ({ deck, onComplete }) => {
     <div className="study-session">
       <div className="study-header">
         <h2>Studying: {deck.name}</h2>
-        <div className="progress">
-          {currentIndex + 1} / {cards.length}
-        </div>
         <button onClick={onComplete} className="exit-btn">
           Exit Study
         </button>
       </div>
+
+      <StudyStats
+        stats={{
+          total: cards.length,
+          studied: sessionStats.studied,
+          correct: sessionStats.correct,
+          streak: 0 // TODO: Add streak tracking
+        }}
+      />
 
       <div className="study-card" onClick={() => showAnswer || setShowAnswer(true)}>
         <div className="card-content">
@@ -127,8 +165,9 @@ const StudySession = ({ deck, onComplete }) => {
                       e.stopPropagation();
                       handleRating('hard');
                     }}
+                    title="1 or H - Hard"
                   >
-                    Hard
+                    ❌ Hard
                   </button>
                   <button
                     className="rate-btn good"
@@ -136,8 +175,9 @@ const StudySession = ({ deck, onComplete }) => {
                       e.stopPropagation();
                       handleRating('good');
                     }}
+                    title="2 or G - Good"
                   >
-                    Good
+                    ✅ Good
                   </button>
                   <button
                     className="rate-btn easy"
@@ -145,9 +185,13 @@ const StudySession = ({ deck, onComplete }) => {
                       e.stopPropagation();
                       handleRating('easy');
                     }}
+                    title="3 or E - Easy"
                   >
-                    Easy
+                    🌟 Easy
                   </button>
+                </div>
+                <div className="keyboard-hint">
+                  <small>Keyboard shortcuts: 1=Hard, 2=Good, 3=Easy, Space=Show Answer</small>
                 </div>
               </div>
             </div>
@@ -155,11 +199,6 @@ const StudySession = ({ deck, onComplete }) => {
         </div>
       </div>
 
-      <div className="session-stats">
-        Studied: {sessionStats.studied} |
-        Accuracy: {sessionStats.studied > 0 ?
-          Math.round((sessionStats.correct / sessionStats.studied) * 100) : 0}%
-      </div>
     </div>
   );
 };
