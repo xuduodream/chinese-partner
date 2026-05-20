@@ -148,91 +148,105 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
             <p>Create your first deck to start organizing your flashcards!</p>
           </div>
         ) : (
-          <div className="decks-grid">
-            {decks.map(deck => {
-              const deckCards = getCards(deck.id);
-              return (
-                <div key={deck.id} className="deck-card-enhanced">
-                  <div className="deck-card-header">
-                    <h3>{deck.name}</h3>
-                    <div className="deck-actions">
-                      <span className="card-count" onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeckSelect(deck);
-                      }}>
-                        {deckCards.length} cards
-                      </span>
-                      <div className="actions-dropdown">
-                        <button
-                          className="actions-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const dropdown = e.currentTarget.nextElementSibling;
-                            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                          }}
-                          title="Deck actions"
-                        >
-                          ⋮
-                        </button>
-                        <div className="actions-menu">
-                          <button
-                            className="action-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRenameDeck(deck);
-                              e.currentTarget.closest('.actions-menu').style.display = 'none';
-                            }}
-                          >
-                            ✏️ Rename
-                          </button>
-                          <button
-                            className="action-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMoveDeck(deck);
-                              e.currentTarget.closest('.actions-menu').style.display = 'none';
-                            }}
-                          >
-                            📁 Move
-                          </button>
-                          <button
-                            className="action-item delete-action"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteDeck(deck);
-                              e.currentTarget.closest('.actions-menu').style.display = 'none';
-                            }}
-                          >
-                            🗑️ Delete
-                          </button>
+          <div className="decks-table-container">
+            <table className="decks-table">
+              <thead>
+                <tr>
+                  <th>Deck Name</th>
+                  <th>Cards</th>
+                  <th>Created</th>
+                  <th>Last Studied</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {decks.map(deck => {
+                  const deckCards = getCards(deck.id);
+                  return (
+                    <tr key={deck.id}>
+                      <td className="deck-name-cell">
+                        <div>
+                          <div className="deck-name">{deck.name}</div>
+                          {deck.description && (
+                            <div className="deck-description">{deck.description}</div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {deck.description && (
-                    <p className="deck-description">{deck.description}</p>
-                  )}
-
-                  <div className="deck-meta">
-                    <span>Created: {new Date(deck.createdAt).toLocaleDateString()}</span>
-                    {deck.lastStudied && (
-                      <span>• Last studied: {new Date(deck.lastStudied).toLocaleDateString()}</span>
-                    )}
-                  </div>
-
-                  <div className="deck-action-buttons">
-                    <button
-                      className="study-btn"
-                      onClick={() => handleStudySession(deck)}
-                      disabled={deckCards.length === 0}
-                    >
-                      Study Now
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                      <td className="deck-cards">
+                        <span className="card-count" onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeckSelect(deck);
+                        }}>
+                          {deckCards.length}
+                        </span>
+                      </td>
+                      <td className="deck-date">
+                        {new Date(deck.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="deck-date">
+                        {deck.lastStudied ? new Date(deck.lastStudied).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="deck-actions-cell">
+                        <div className="deck-row-actions">
+                          <button
+                            className="study-btn-table"
+                            onClick={() => handleStudySession(deck)}
+                            disabled={deckCards.length === 0}
+                          >
+                            Study Now
+                          </button>
+                          <div className="actions-dropdown">
+                            <button
+                              className="actions-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const dropdown = e.currentTarget.nextElementSibling;
+                                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                              }}
+                              title="Deck actions"
+                            >
+                              ⋮
+                            </button>
+                            <div className="actions-menu">
+                              <button
+                                className="action-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRenameDeck(deck);
+                                  e.currentTarget.closest('.actions-menu').style.display = 'none';
+                                }}
+                              >
+                                ✏️ Rename
+                              </button>
+                              <button
+                                className="action-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveDeck(deck);
+                                  e.currentTarget.closest('.actions-menu').style.display = 'none';
+                                }}
+                              >
+                                📁 Move
+                              </button>
+                              <button
+                                className="action-item delete-action"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteDeck(deck);
+                                  e.currentTarget.closest('.actions-menu').style.display = 'none';
+                                }}
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

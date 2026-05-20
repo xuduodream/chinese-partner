@@ -71,11 +71,14 @@ function App() {
 
   return (
     <div className="app">
-      <header>
-        <div className="header-top">
-          <h1>MemBoost</h1>
+      <div className="app-layout">
+        {/* Left Sidebar Navigation */}
+        <nav className="sidebar-nav">
+          <div className="nav-header">
+            <h1>MemBoost</h1>
+          </div>
 
-          <div className="nav-buttons">
+          <div className="nav-menu">
             <button
               className={showLanding ? 'active' : ''}
               onClick={() => {
@@ -83,7 +86,8 @@ function App() {
                 setShowRevision(false);
               }}
             >
-              Home
+              <span className="nav-icon">🏠</span>
+              <span className="nav-text">Home</span>
             </button>
             <button
               className={!showRevision && !showLanding ? 'active' : ''}
@@ -92,7 +96,8 @@ function App() {
                 setShowLanding(false);
               }}
             >
-              Import
+              <span className="nav-icon">📤</span>
+              <span className="nav-text">Import</span>
             </button>
             <button
               className={showRevision ? 'active' : ''}
@@ -101,80 +106,122 @@ function App() {
                 setShowLanding(false);
               }}
             >
-              Review
+              <span className="nav-icon">📚</span>
+              <span className="nav-text">Review</span>
             </button>
           </div>
-        </div>
+        </nav>
 
-        {/* Language Selector - shown on Import page only */}
-        {!showLanding && !showRevision && (
-          <div className="lang-selector">
-            <select
-              value={targetLang}
-              onChange={(e) => setTargetLang(e.target.value)}
-            >
-              <option value="en">English</option>
-              <option value="fr">Français</option>
-            </select>
-          </div>
-        )}
-
-        {/* Profile and Deck Management - shown on Review page only */}
-        {showRevision && (
-          <div className="study-context">
-            <ProfileManager
-              currentProfile={currentProfile}
-              onProfileChange={handleProfileChange}
-            />
-            <DeckManager
-              currentProfile={currentProfile}
-              currentDeck={currentDeck}
-              onDeckChange={handleDeckChange}
-            />
-          </div>
-        )}
-      </header>
-
-      {/* Migration Dialog */}
-      {showMigrationDialog && (
-        <div className="migration-dialog">
-          <div className="migration-content">
-            <h3>🎉 Welcome to Profiles & Decks!</h3>
-            <p>We've upgraded your flashcard system to support profiles and decks, just like Anki!</p>
-            <p>Your existing flashcards have been migrated to a "Personal" profile with a "General" deck.</p>
-            <div className="migration-features">
-              <div className="feature">📁 Organize cards into profiles</div>
-              <div className="feature">📚 Create multiple decks per profile</div>
-              <div className="feature">🎯 Study specific topics or levels</div>
+        {/* Main Content Area */}
+        <div className="main-content">
+          {/* Language Selector - shown on Import page only */}
+          {!showLanding && !showRevision && (
+            <div className="lang-selector">
+              <select
+                value={targetLang}
+                onChange={(e) => setTargetLang(e.target.value)}
+              >
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+              </select>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      <main>
-        {showLanding ? (
-          <LandingPage onStart={() => setShowLanding(false)} />
-        ) : !showRevision ? (
-          <>
-            <ImageUpload onResults={handleResults} targetLang={targetLang} />
-            {results.length > 0 && (
-              <div className="results">
-                <h2>Extracted Sentences</h2>
-                {results.map((sentence, idx) => (
-                  <Flashcard
-                    key={idx}
-                    card={sentence}
-                    onSave={handleSaveCard}
-                    currentDeck={currentDeck}
-                  />
-                ))}
+          {/* Profile and Deck Management - shown on Review page only */}
+          {showRevision && (
+            <div className="study-context">
+              <ProfileManager
+                currentProfile={currentProfile}
+                onProfileChange={handleProfileChange}
+              />
+              <DeckManager
+                currentProfile={currentProfile}
+                currentDeck={currentDeck}
+                onDeckChange={handleDeckChange}
+              />
+            </div>
+          )}
+
+          {/* Migration Dialog */}
+          {showMigrationDialog && (
+            <div className="migration-dialog">
+              <div className="migration-content">
+                <h3>🎉 Welcome to Profiles & Decks!</h3>
+                <p>We've upgraded your flashcard system to support profiles and decks, just like Anki!</p>
+                <p>Your existing flashcards have been migrated to a "Personal" profile with a "General" deck.</p>
+                <div className="migration-features">
+                  <div className="feature">📁 Organize cards into profiles</div>
+                  <div className="feature">📚 Create multiple decks per profile</div>
+                  <div className="feature">🎯 Study specific topics or levels</div>
+                </div>
               </div>
+            </div>
+          )}
+
+          <main>
+            {showLanding ? (
+              <LandingPage onStart={() => setShowLanding(false)} />
+            ) : !showRevision ? (
+              <>
+                <ImageUpload onResults={handleResults} targetLang={targetLang} />
+                {results.length > 0 && (
+                  <div className="results">
+                    <h2>Extracted Sentences</h2>
+                    <div className="flashcards-table-container">
+                      <table className="flashcards-table">
+                        <thead>
+                          <tr>
+                            <th>Chinese</th>
+                            <th>Pinyin</th>
+                            <th>Translation</th>
+                            <th>Context</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {results.map((sentence, idx) => (
+                            <tr key={idx}>
+                              <td className="chinese-text">{sentence.original}</td>
+                              <td className="pinyin-text">{sentence.pinyin}</td>
+                              <td className="translation-text">{sentence.translation}</td>
+                              <td className="context-text">{sentence.context}</td>
+                              <td className="actions-cell">
+                                <div className="flashcard-actions">
+                                  <button
+                                    className="audio-btn-table"
+                                    onClick={() => {
+                                      if (window.speechSynthesis) {
+                                        const utterance = new SpeechSynthesisUtterance(sentence.original);
+                                        utterance.lang = 'zh-CN';
+                                        window.speechSynthesis.speak(utterance);
+                                      }
+                                    }}
+                                    title="Listen to Chinese"
+                                  >
+                                    🔊
+                                  </button>
+                                  <button
+                                    className="save-btn-table"
+                                    onClick={() => handleSaveCard(sentence)}
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <RevisionPage currentProfile={currentProfile} currentDeck={currentDeck} />
             )}
-          </>
-        ) : (
-          <RevisionPage currentProfile={currentProfile} currentDeck={currentDeck} />
-        )}
-      </main>
+          </main>
+        </div>
+      </div>
     </div>
   );
 }
