@@ -72,59 +72,67 @@ function App() {
   return (
     <div className="app">
       <header>
-        <h1>MemBoost</h1>
+        <div className="header-top">
+          <h1>MemBoost</h1>
 
-        {/* Profile and Deck Management */}
-        <div className="study-context">
-          <ProfileManager
-            currentProfile={currentProfile}
-            onProfileChange={handleProfileChange}
-          />
-          <DeckManager
-            currentProfile={currentProfile}
-            currentDeck={currentDeck}
-            onDeckChange={handleDeckChange}
-          />
+          <div className="nav-buttons">
+            <button
+              className={showLanding ? 'active' : ''}
+              onClick={() => {
+                setShowLanding(true);
+                setShowRevision(false);
+              }}
+            >
+              Home
+            </button>
+            <button
+              className={!showRevision && !showLanding ? 'active' : ''}
+              onClick={() => {
+                setShowRevision(false);
+                setShowLanding(false);
+              }}
+            >
+              Import
+            </button>
+            <button
+              className={showRevision ? 'active' : ''}
+              onClick={() => {
+                setShowRevision(true);
+                setShowLanding(false);
+              }}
+            >
+              Review
+            </button>
+          </div>
         </div>
 
-        <div className="lang-selector">
-          <select
-            value={targetLang}
-            onChange={(e) => setTargetLang(e.target.value)}
-          >
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-          </select>
-        </div>
-        <div className="nav-buttons">
-          <button
-            className={showLanding ? 'active' : ''}
-            onClick={() => {
-              setShowLanding(true);
-              setShowRevision(false);
-            }}
-          >
-            Home
-          </button>
-          <button
-            className={!showRevision && !showLanding ? 'active' : ''}
-            onClick={() => {
-              setShowRevision(false);
-              setShowLanding(false);
-            }}
-          >
-            Import
-          </button>
-          <button
-            className={showRevision ? 'active' : ''}
-            onClick={() => {
-              setShowRevision(true);
-              setShowLanding(false);
-            }}
-          >
-            Review ({JSON.parse(localStorage.getItem('chinese_flashcards') || '[]').length})
-          </button>
-        </div>
+        {/* Language Selector - shown on Import page only */}
+        {!showLanding && !showRevision && (
+          <div className="lang-selector">
+            <select
+              value={targetLang}
+              onChange={(e) => setTargetLang(e.target.value)}
+            >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
+        )}
+
+        {/* Profile and Deck Management - shown on Review page only */}
+        {showRevision && (
+          <div className="study-context">
+            <ProfileManager
+              currentProfile={currentProfile}
+              onProfileChange={handleProfileChange}
+            />
+            <DeckManager
+              currentProfile={currentProfile}
+              currentDeck={currentDeck}
+              onDeckChange={handleDeckChange}
+            />
+          </div>
+        )}
       </header>
 
       {/* Migration Dialog */}
