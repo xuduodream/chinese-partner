@@ -4,6 +4,7 @@ import Flashcard from './components/Flashcard';
 import RevisionPage from './components/RevisionPage';
 import ProfileManager from './components/ProfileManager';
 import DeckManager from './components/DeckManager';
+import LandingPage from './components/LandingPage';
 import { saveCard, checkAndMigrateData, getProfiles, getDecks, createProfile, createDeck } from './utils/storage';
 import './index.css';
 
@@ -11,6 +12,7 @@ function App() {
   const [results, setResults] = useState([]);
   const [targetLang, setTargetLang] = useState('en');
   const [showRevision, setShowRevision] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [currentProfile, setCurrentProfile] = useState(null);
   const [currentDeck, setCurrentDeck] = useState(null);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
@@ -96,14 +98,29 @@ function App() {
         </div>
         <div className="nav-buttons">
           <button
-            className={!showRevision ? 'active' : ''}
-            onClick={() => setShowRevision(false)}
+            className={showLanding ? 'active' : ''}
+            onClick={() => {
+              setShowLanding(true);
+              setShowRevision(false);
+            }}
+          >
+            Home
+          </button>
+          <button
+            className={!showRevision && !showLanding ? 'active' : ''}
+            onClick={() => {
+              setShowRevision(false);
+              setShowLanding(false);
+            }}
           >
             Import
           </button>
           <button
             className={showRevision ? 'active' : ''}
-            onClick={() => setShowRevision(true)}
+            onClick={() => {
+              setShowRevision(true);
+              setShowLanding(false);
+            }}
           >
             Review ({JSON.parse(localStorage.getItem('chinese_flashcards') || '[]').length})
           </button>
@@ -127,7 +144,9 @@ function App() {
       )}
 
       <main>
-        {!showRevision ? (
+        {showLanding ? (
+          <LandingPage onStart={() => setShowLanding(false)} />
+        ) : !showRevision ? (
           <>
             <ImageUpload onResults={handleResults} targetLang={targetLang} />
             {results.length > 0 && (
