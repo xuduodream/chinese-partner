@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project Overview
 
-Chinese Partner Frontend is a React + Vite application that provides a user interface for uploading Chinese text images, viewing AI-generated explanations, and managing flashcards for language learning.
+MemBoost Frontend is a React + Vite application that provides a user interface for uploading Chinese text images, viewing AI-generated explanations, and managing flashcards for language learning.
 
 ## Development Commands
 

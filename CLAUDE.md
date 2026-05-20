@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Chinese Partner is a web application that extracts Chinese text from images, explains each sentence with AI, and creates audio-enhanced flashcards for review. The app follows a client-server architecture with:
+MemBoost is a web application that extracts Chinese text from images, explains each sentence with AI, and creates audio-enhanced flashcards for review. The app follows a client-server architecture with:
 
 - **Backend**: Python + FastAPI for OCR, text processing, and AI explanations
 - **Frontend**: React + Vite for the user interface

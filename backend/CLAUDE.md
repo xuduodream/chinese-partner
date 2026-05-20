@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project Overview
 
-Chinese Partner Backend is a Python + FastAPI application that handles Chinese text extraction from images, sentence processing, AI explanations, and real-time progress tracking. The backend uses a job-based system for asynchronous processing with progress polling.
+MemBoost Backend is a Python + FastAPI application that handles Chinese text extraction from images, sentence processing, AI explanations, and real-time progress tracking. The backend uses a job-based system for asynchronous processing with progress polling.
 
 ## Development Commands
 

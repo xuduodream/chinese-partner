@@ -70,7 +70,7 @@ function App() {
   return (
     <div className="app">
       <header>
-        <h1>🇨🇳 Chinese Partner</h1>
+        <h1>MemBoost</h1>
 
         {/* Profile and Deck Management */}
         <div className="study-context">
