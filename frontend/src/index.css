@@ -1940,13 +1940,13 @@ header h1 {
   background: var(--surface-color);
   border-radius: 16px;
   padding: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   box-shadow: var(--shadow-light);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--border-color);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .flashcard::before, .review-card::before {
@@ -1968,6 +1968,11 @@ header h1 {
 
 .flashcard:hover::before, .review-card:hover::before {
   opacity: 1;
+}
+
+/* Ensure flashcard content has enough bottom padding */
+.flashcard .back {
+  padding-bottom: 10px;
 }
 
 .flashcard h3, .review-card h3 {
@@ -1996,6 +2001,9 @@ header h1 {
   display: flex;
   gap: 10px;
   margin: 15px 0;
+  position: relative;
+  z-index: 1;
+  padding-bottom: 5px;
 }
 
 button {
@@ -2048,13 +2056,17 @@ button.danger:hover {
 }
 
 /* Audio buttons */
-.audio-btn {
+.audio-btn,
+.audio-buttons button {
   background: var(--info-color) !important;
   padding: 8px 16px !important;
   font-size: 13px !important;
+  white-space: nowrap;
+  min-height: 36px;
 }
 
-.audio-btn:hover {
+.audio-btn:hover,
+.audio-buttons button:hover {
   background: var(--primary-dark) !important;
 }
 
