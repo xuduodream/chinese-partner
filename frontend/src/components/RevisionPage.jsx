@@ -137,12 +137,14 @@ const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0 }) => {
     <div className="revision-page">
       <div className="deck-list-view">
         <div className="revision-header">
-          <h2>📚 Study Decks</h2>
-          {currentProfile && (
-            <div className="profile-info">
-              Profile: <strong>{currentProfile.name}</strong>
-            </div>
-          )}
+          <h2>
+            📚 Study Decks
+            {currentProfile && (
+              <span className="profile-info">
+                • Profile: <strong>{currentProfile.name}</strong>
+              </span>
+            )}
+          </h2>
         </div>
 
         {!currentProfile ? (
