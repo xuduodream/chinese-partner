@@ -71,6 +71,21 @@ function App() {
     setCurrentDeck(deck);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.profile-actions-menu')) {
+        const dropdowns = document.querySelectorAll('.dropdown-content');
+        dropdowns.forEach(dropdown => {
+          dropdown.style.display = 'none';
+        });
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   return (
     <div className="app">
       <div className="app-layout">
@@ -157,9 +172,9 @@ function App() {
                     ))}
                   </select>
 
-                  <div className="profile-actions">
+                  <div className="profile-actions-dropdown">
                     <button
-                      className="action-btn"
+                      className="action-btn new-profile-btn"
                       onClick={() => {
                         const name = prompt('New profile name:');
                         if (name) {
@@ -168,42 +183,57 @@ function App() {
                         }
                       }}
                     >
-                      New Profile
+                      + New Profile
                     </button>
 
                     {currentProfile && (
-                      <>
+                      <div className="profile-actions-menu">
                         <button
-                          className="action-btn"
-                          onClick={() => {
-                            const newName = prompt('Rename profile:', currentProfile.name);
-                            if (newName && newName !== currentProfile.name) {
-                              renameProfile(currentProfile.id, newName.trim());
-                              const updated = getProfileById(currentProfile.id);
-                              if (updated) handleProfileChange(updated);
-                            }
+                          className="dropdown-toggle"
+                          title="Profile actions"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const dropdown = e.currentTarget.nextElementSibling;
+                            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
                           }}
                         >
-                          Rename
+                          ⋮
                         </button>
-
-                        <button
-                          className="action-btn delete"
-                          onClick={() => {
-                            if (window.confirm(`Delete profile "${currentProfile.name}"?`)) {
-                              deleteProfile(currentProfile.id);
-                              const remaining = getProfiles();
-                              if (remaining.length > 0) {
-                                handleProfileChange(remaining[0]);
-                              } else {
-                                handleProfileChange(null);
+                        <div className="dropdown-content">
+                          <button
+                            onClick={(e) => {
+                              const newName = prompt('Rename profile:', currentProfile.name);
+                              if (newName && newName !== currentProfile.name) {
+                                renameProfile(currentProfile.id, newName.trim());
+                                const updated = getProfileById(currentProfile.id);
+                                if (updated) handleProfileChange(updated);
                               }
-                            }
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </>
+                              // Close dropdown
+                              e.target.closest('.dropdown-content').style.display = 'none';
+                            }}
+                          >
+                            ✏️ Rename Profile
+                          </button>
+                          <button
+                            className="delete-action"
+                            onClick={(e) => {
+                              if (window.confirm(`Delete profile "${currentProfile.name}"?`)) {
+                                deleteProfile(currentProfile.id);
+                                const remaining = getProfiles();
+                                if (remaining.length > 0) {
+                                  handleProfileChange(remaining[0]);
+                                } else {
+                                  handleProfileChange(null);
+                                }
+                              }
+                              // Close dropdown
+                              e.target.closest('.dropdown-content').style.display = 'none';
+                            }}
+                          >
+                            🗑️ Delete Profile
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>

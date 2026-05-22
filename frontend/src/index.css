@@ -2169,13 +2169,14 @@ header {
   min-width: 150px;
 }
 
-.profile-actions {
+.profile-actions-dropdown {
   display: flex;
   gap: 8px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.action-btn {
+.new-profile-btn {
   padding: 6px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -2188,19 +2189,83 @@ header {
   white-space: nowrap;
 }
 
-.action-btn:hover {
+.new-profile-btn:hover {
   background: #f9fafb;
   border-color: #9ca3af;
 }
 
-.action-btn.delete {
-  color: #dc2626;
-  border-color: #fca5a5;
+.profile-actions-menu {
+  position: relative;
+  display: inline-block;
 }
 
-.action-btn.delete:hover {
+.dropdown-toggle {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-toggle:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  min-width: 160px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  z-index: 1000;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.dropdown-content.show {
+  display: block;
+}
+
+.dropdown-content button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: #374151;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.dropdown-content button:hover {
+  background: #f9fafb;
+}
+
+.dropdown-content button.delete-action {
+  color: #dc2626;
+}
+
+.dropdown-content button.delete-action:hover {
   background: #fef2f2;
-  border-color: #dc2626;
+  color: #b91c1c;
 }
 
 .deck-section {
