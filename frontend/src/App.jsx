@@ -5,7 +5,7 @@ import RevisionPage from './components/RevisionPage';
 import ProfileManager from './components/ProfileManager';
 import DeckManager from './components/DeckManager';
 import LandingPage from './components/LandingPage';
-import { saveCard, checkAndMigrateData, getProfiles, getDecks, createProfile, createDeck } from './utils/storage';
+import { saveCard, checkAndMigrateData, getProfiles, getDecks, createProfile, createDeck, getProfileById, renameProfile, deleteProfile } from './utils/storage';
 import './index.css';
 
 function App() {
@@ -17,6 +17,8 @@ function App() {
   const [currentDeck, setCurrentDeck] = useState(null);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
   const [migrationComplete, setMigrationComplete] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [deckListVersion, setDeckListVersion] = useState(0);
 
   useEffect(() => {
     // Check for data migration on app load
@@ -73,10 +75,17 @@ function App() {
     <div className="app">
       <div className="app-layout">
         {/* Left Sidebar Navigation */}
-        <nav className="sidebar-nav">
+        <nav className={`sidebar-nav ${sidebarCollapsed ? 'collapsed' : ''}`}>
           <div className="nav-header">
-            <h1>MemBoost</h1>
+            <h1>{sidebarCollapsed ? 'MB' : 'MemBoost'}</h1>
           </div>
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? '→' : '←'}
+          </button>
 
           <div className="nav-menu">
             <button
@@ -113,7 +122,7 @@ function App() {
         </nav>
 
         {/* Main Content Area */}
-        <div className="main-content">
+        <div className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
           {/* Language Selector - shown on Import page only */}
           {!showLanding && !showRevision && (
             <div className="lang-selector">
@@ -130,15 +139,96 @@ function App() {
           {/* Profile and Deck Management - shown on Review page only */}
           {showRevision && (
             <div className="study-context">
-              <ProfileManager
-                currentProfile={currentProfile}
-                onProfileChange={handleProfileChange}
-              />
-              <DeckManager
-                currentProfile={currentProfile}
-                currentDeck={currentDeck}
-                onDeckChange={handleDeckChange}
-              />
+              <div className="profile-deck-bar">
+                <div className="profile-section">
+                  <label>Study Profile:</label>
+                  <select
+                    value={currentProfile?.id || ''}
+                    onChange={(e) => {
+                      const profile = getProfiles().find(p => p.id === e.target.value);
+                      if (profile) handleProfileChange(profile);
+                    }}
+                  >
+                    <option value="">Select profile...</option>
+                    {getProfiles().map(profile => (
+                      <option key={profile.id} value={profile.id}>
+                        {profile.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="profile-actions">
+                    <button
+                      className="action-btn"
+                      onClick={() => {
+                        const name = prompt('New profile name:');
+                        if (name) {
+                          const profile = createProfile(name.trim(), '', 'en');
+                          handleProfileChange(profile);
+                        }
+                      }}
+                    >
+                      New Profile
+                    </button>
+
+                    {currentProfile && (
+                      <>
+                        <button
+                          className="action-btn"
+                          onClick={() => {
+                            const newName = prompt('Rename profile:', currentProfile.name);
+                            if (newName && newName !== currentProfile.name) {
+                              renameProfile(currentProfile.id, newName.trim());
+                              const updated = getProfileById(currentProfile.id);
+                              if (updated) handleProfileChange(updated);
+                            }
+                          }}
+                        >
+                          Rename
+                        </button>
+
+                        <button
+                          className="action-btn delete"
+                          onClick={() => {
+                            if (window.confirm(`Delete profile "${currentProfile.name}"?`)) {
+                              deleteProfile(currentProfile.id);
+                              const remaining = getProfiles();
+                              if (remaining.length > 0) {
+                                handleProfileChange(remaining[0]);
+                              } else {
+                                handleProfileChange(null);
+                              }
+                            }
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="deck-section">
+                  <button
+                    className="action-btn"
+                    onClick={() => {
+                      if (!currentProfile) {
+                        alert('Please select a profile first');
+                        return;
+                      }
+                      const name = prompt('New deck name:');
+                      if (name) {
+                        const deck = createDeck(currentProfile.id, name.trim(), '');
+                        handleDeckChange(deck);
+                        // Trigger deck list refresh
+                        setDeckListVersion(prev => prev + 1);
+                      }
+                    }}
+                  >
+                    + New Deck
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -174,41 +264,86 @@ function App() {
                             <th>Chinese</th>
                             <th>Pinyin</th>
                             <th>Translation</th>
-                            <th>Context</th>
                             <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {results.map((sentence, idx) => (
-                            <tr key={idx}>
-                              <td className="chinese-text">{sentence.original}</td>
-                              <td className="pinyin-text">{sentence.pinyin}</td>
-                              <td className="translation-text">{sentence.translation}</td>
-                              <td className="context-text">{sentence.context}</td>
-                              <td className="actions-cell">
-                                <div className="flashcard-actions">
-                                  <button
-                                    className="audio-btn-table"
-                                    onClick={() => {
-                                      if (window.speechSynthesis) {
-                                        const utterance = new SpeechSynthesisUtterance(sentence.original);
-                                        utterance.lang = 'zh-CN';
-                                        window.speechSynthesis.speak(utterance);
-                                      }
-                                    }}
-                                    title="Listen to Chinese"
-                                  >
-                                    🔊
-                                  </button>
-                                  <button
-                                    className="save-btn-table"
-                                    onClick={() => handleSaveCard(sentence)}
-                                  >
-                                    Save
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
+                            <React.Fragment key={idx}>
+                              <tr>
+                                <td className="chinese-text">{sentence.original}</td>
+                                <td className="pinyin-text">{sentence.pinyin}</td>
+                                <td className="translation-text">{sentence.translation}</td>
+                                <td className="actions-cell">
+                                  <div className="flashcard-actions">
+                                    <button
+                                      className="audio-btn-table"
+                                      onClick={() => {
+                                        if (window.speechSynthesis) {
+                                          const utterance = new SpeechSynthesisUtterance(sentence.original);
+                                          utterance.lang = 'zh-CN';
+                                          window.speechSynthesis.speak(utterance);
+                                        }
+                                      }}
+                                      title="Listen to Chinese"
+                                    >
+                                      🔊
+                                    </button>
+                                    <button
+                                      className="save-btn-table"
+                                      onClick={() => handleSaveCard(sentence)}
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      className="explanation-toggle-btn"
+                                      onClick={(e) => {
+                                        const row = e.currentTarget.closest('tr');
+                                        const explanationRow = row.nextElementSibling;
+                                        if (explanationRow && explanationRow.classList.contains('explanation-row')) {
+                                          explanationRow.style.display = explanationRow.style.display === 'none' ? 'table-row' : 'none';
+                                          e.currentTarget.textContent = explanationRow.style.display === 'none' ? 'Show Explanation →' : 'Hide Explanation ←';
+                                        }
+                                      }}
+                                    >
+                                      Show Explanation →
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr className="explanation-row" style={{display: 'none'}}>
+                                <td colSpan="4" className="explanation-expanded">
+                                  <div className="explanation-content">
+                                    <div className="explanation-details">
+                                      <div><strong>Context:</strong> {sentence.context}</div>
+                                      <div><strong>Grammar:</strong> {sentence.grammar}</div>
+                                      <div><strong>Example:</strong> {sentence.example}</div>
+                                    </div>
+                                    <div className="explanation-actions">
+                                      <button
+                                        className="audio-btn-expanded"
+                                        onClick={() => {
+                                          if (window.speechSynthesis) {
+                                            const utterance = new SpeechSynthesisUtterance(sentence.original);
+                                            utterance.lang = 'zh-CN';
+                                            window.speechSynthesis.speak(utterance);
+                                          }
+                                        }}
+                                        title="Listen to Chinese"
+                                      >
+                                        🔊 Listen Chinese
+                                      </button>
+                                      <button
+                                        className="save-btn-expanded"
+                                        onClick={() => handleSaveCard(sentence)}
+                                      >
+                                        Save Card
+                                      </button>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            </React.Fragment>
                           ))}
                         </tbody>
                       </table>
@@ -217,7 +352,11 @@ function App() {
                 )}
               </>
             ) : (
-              <RevisionPage currentProfile={currentProfile} currentDeck={currentDeck} />
+              <RevisionPage
+                currentProfile={currentProfile}
+                currentDeck={currentDeck}
+                refreshTrigger={deckListVersion}
+              />
             )}
           </main>
         </div>

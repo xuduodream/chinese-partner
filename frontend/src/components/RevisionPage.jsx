@@ -5,7 +5,7 @@ import StudySession from './StudySession';
 import DeckMoveModal from './DeckMoveModal';
 import RenameModal from './RenameModal';
 
-const RevisionPage = ({ currentProfile, currentDeck }) => {
+const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0 }) => {
   const [view, setView] = useState('deck-list'); // 'deck-list', 'deck-review', or 'study-session'
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [decks, setDecks] = useState([]);
@@ -19,6 +19,12 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
       loadDecks();
     }
   }, [currentProfile]);
+
+  useEffect(() => {
+    if (currentProfile) {
+      loadDecks();
+    }
+  }, [refreshTrigger, currentProfile]);
 
   const loadDecks = () => {
     if (!currentProfile) return;
@@ -117,6 +123,7 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   };
+
 
   if (view === 'deck-review') {
     return <DeckReviewPage deck={selectedDeck} onBack={handleBackToDeckList} />;
@@ -288,6 +295,6 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
       )}
     </div>
   );
-};
+}
 
 export default RevisionPage;
