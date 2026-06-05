@@ -871,7 +871,7 @@ header h1 {
 .flashcard-actions {
   display: flex;
   gap: 4px;
-  flex-wrap: wrap;
+  align-items: center;
 }
 
 .audio-btn-table {
@@ -894,6 +894,18 @@ header h1 {
 .audio-btn-table:hover {
   background: #f3f4f6;
   border-color: #d1d5db;
+}
+
+.audio-translate-btn {
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+  color: #2e7d32;
+}
+
+.audio-translate-btn:hover {
+  background: #c8e6c9;
+  border-color: #66bb6a;
+}
   color: #374151;
 }
 
@@ -917,23 +929,25 @@ header h1 {
 }
 
 .explanation-toggle-btn {
-  padding: 4px 8px;
+  padding: 4px;
   border: 1px solid #e5e7eb;
   border-radius: 3px;
-  background: white;
-  color: #6b7280;
+  background: #fff8e1;
+  color: #f9a825;
   cursor: pointer;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 14px;
   transition: all 0.2s;
-  white-space: nowrap;
+  width: 24px;
   height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .explanation-toggle-btn:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-  color: #374151;
+  background: #ffecb3;
+  border-color: #fdd835;
+  color: #f57f17;
 }
 
 /* Expanded explanation row */

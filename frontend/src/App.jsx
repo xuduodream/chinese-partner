@@ -318,13 +318,20 @@ function App() {
                                       }}
                                       title="Listen to Chinese"
                                     >
-                                      🔊
+                                      🇨🇳
                                     </button>
                                     <button
-                                      className="save-btn-table"
-                                      onClick={() => handleSaveCard(sentence)}
+                                      className="audio-btn-table audio-translate-btn"
+                                      onClick={() => {
+                                        if (window.speechSynthesis) {
+                                          const utterance = new SpeechSynthesisUtterance(sentence.translation);
+                                          utterance.lang = targetLang === 'fr' ? 'fr-FR' : 'en-US';
+                                          window.speechSynthesis.speak(utterance);
+                                        }
+                                      }}
+                                      title="Listen to Translation"
                                     >
-                                      Save
+                                      🌐
                                     </button>
                                     <button
                                       className="explanation-toggle-btn"
@@ -333,11 +340,11 @@ function App() {
                                         const explanationRow = row.nextElementSibling;
                                         if (explanationRow && explanationRow.classList.contains('explanation-row')) {
                                           explanationRow.style.display = explanationRow.style.display === 'none' ? 'table-row' : 'none';
-                                          e.currentTarget.textContent = explanationRow.style.display === 'none' ? 'Show Explanation →' : 'Hide Explanation ←';
+                                          e.currentTarget.textContent = explanationRow.style.display === 'none' ? '💡' : '💡';
                                         }
                                       }}
                                     >
-                                      Show Explanation →
+                                      💡
                                     </button>
                                   </div>
                                 </td>
