@@ -7,11 +7,16 @@ const ImageUpload = ({ onResults, targetLang }) => {
   const [progressPercent, setProgressPercent] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const pollIntervalRef = useRef(null);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
+
+    // Create preview URL
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImage(imageUrl);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -108,8 +113,11 @@ const ImageUpload = ({ onResults, targetLang }) => {
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
       }
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+      }
     };
-  }, []);
+  }, [selectedImage]);
 
   return (
     <div className="image-upload">
@@ -120,6 +128,17 @@ const ImageUpload = ({ onResults, targetLang }) => {
         onChange={handleImageUpload}
         disabled={loading}
       />
+
+      {selectedImage && !loading && (
+        <div className="image-preview">
+          <img
+            src={selectedImage}
+            alt="Uploaded preview"
+            className="image-thumbnail"
+            onClick={() => window.open(selectedImage, '_blank')}
+          />
+        </div>
+      )}
 
       {loading && (
         <div className="progress-container">

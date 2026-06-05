@@ -2866,6 +2866,24 @@ header {
   margin: 20px 0;
 }
 
+.image-preview {
+  margin: 16px 0;
+}
+
+.image-thumbnail {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  cursor: zoom-in;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.image-thumbnail:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
 .progress-container {
   margin: 20px 0;
   padding: 20px;
