@@ -723,6 +723,57 @@ header h1 {
   color: #666;
 }
 
+.profile-selection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.profile-selection-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f0f4ff;
+  border: 1px solid #c8d8ff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-size: 15px;
+}
+
+.profile-selection-item:hover {
+  background: #dce8ff;
+  border-color: #7a9fff;
+}
+
+.profile-selection-name {
+  font-weight: 600;
+}
+
+.profile-selection-count {
+  font-size: 12px;
+  color: #666;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #2196F3;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 0 12px 0;
+  display: block;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}
+
 /* No Profile Message */
 .no-profile-message {
   color: #666;

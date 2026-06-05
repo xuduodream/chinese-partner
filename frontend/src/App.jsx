@@ -5,7 +5,7 @@ import RevisionPage from './components/RevisionPage';
 import ProfileManager from './components/ProfileManager';
 import DeckManager from './components/DeckManager';
 import LandingPage from './components/LandingPage';
-import { saveCard, checkAndMigrateData, getProfiles, getDecks, createProfile, createDeck, getProfileById, renameProfile, deleteProfile } from './utils/storage';
+import { saveCard, checkAndMigrateData, getProfiles, getDecks, getCards, createProfile, createDeck, getProfileById, renameProfile, deleteProfile } from './utils/storage';
 import './index.css';
 
 function App() {
@@ -19,7 +19,13 @@ function App() {
   const [migrationComplete, setMigrationComplete] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [deckListVersion, setDeckListVersion] = useState(0);
+  const [savedCards, setSavedCards] = useState(new Set());
   const [showProfileBar, setShowProfileBar] = useState(true);
+  const [showDeckSelector, setShowDeckSelector] = useState(false);
+  const [pendingCard, setPendingCard] = useState(null);
+  const [availableDecks, setAvailableDecks] = useState([]);
+  const [selectedProfileId, setSelectedProfileId] = useState(null);
+  const [step, setStep] = useState('profile'); // 'profile' or 'deck'
 
   useEffect(() => {
     // Check for data migration on app load
@@ -61,6 +67,31 @@ function App() {
       grammar: cardData.grammar,
       example: cardData.example
     }, deckId || currentDeck?.id);
+  };
+
+  const handleSaveCardWithFeedback = (cardData, idx) => {
+    setPendingCard({ cardData, idx });
+    setSelectedProfileId(null);
+    setStep('profile');
+    setShowDeckSelector(true);
+  };
+
+  const handleProfileSelect = (profileId) => {
+    setSelectedProfileId(profileId);
+    const decks = getDecks(profileId);
+    setAvailableDecks(decks);
+    setStep('deck');
+  };
+
+  const handleSaveToDeck = (deckId) => {
+    if (pendingCard) {
+      handleSaveCard(pendingCard.cardData, deckId);
+      setSavedCards(prev => new Set(prev).add(pendingCard.idx));
+      setShowDeckSelector(false);
+      setPendingCard(null);
+      setSelectedProfileId(null);
+      setStep('profile');
+    }
   };
 
   const handleProfileChange = (profile) => {
@@ -263,6 +294,96 @@ function App() {
             </div>
           )}
 
+          {/* Save to Deck Modal */}
+          {showDeckSelector && (
+            <div className="modal-overlay" onClick={() => {
+              setShowDeckSelector(false);
+              setPendingCard(null);
+              setSelectedProfileId(null);
+              setStep('profile');
+            }}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                {step === 'profile' ? (
+                  <>
+                    <h3>Save to Profile</h3>
+                    <p>Choose a profile, then a deck:</p>
+
+                    <div className="profile-selection-list">
+                      {getProfiles().map(profile => (
+                        <button
+                          key={profile.id}
+                          className="profile-selection-item"
+                          onClick={() => handleProfileSelect(profile.id)}
+                        >
+                          <span className="profile-selection-name">👤 {profile.name}</span>
+                          <span className="profile-selection-count">
+                            ({profile.decks?.length || 0} decks)
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="modal-actions">
+                      <button
+                        className="cancel-btn"
+                        onClick={() => {
+                          setShowDeckSelector(false);
+                          setPendingCard(null);
+                          setStep('profile');
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3>Save to Deck</h3>
+                    <button
+                      className="back-btn"
+                      onClick={() => setStep('profile')}
+                    >
+                      ← Back to profiles
+                    </button>
+
+                    {availableDecks.length === 0 ? (
+                      <div className="no-decks-message">
+                        No decks in this profile. Please create a deck first.
+                      </div>
+                    ) : (
+                      <div className="deck-selection-list">
+                        {availableDecks.map(deck => (
+                          <button
+                            key={deck.id}
+                            className="deck-selection-item"
+                            onClick={() => handleSaveToDeck(deck.id)}
+                          >
+                            <span className="deck-selection-name">{deck.name}</span>
+                            <span className="deck-selection-count">({getCards(deck.id).length} cards)</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="modal-actions">
+                      <button
+                        className="cancel-btn"
+                        onClick={() => {
+                          setShowDeckSelector(false);
+                          setPendingCard(null);
+                          setSelectedProfileId(null);
+                          setStep('profile');
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Migration Dialog */}
           {showMigrationDialog && (
             <div className="migration-dialog">
@@ -360,9 +481,9 @@ function App() {
                                     <div className="explanation-actions">
                                       <button
                                         className="save-btn-expanded"
-                                        onClick={() => handleSaveCard(sentence)}
+                                        onClick={() => handleSaveCardWithFeedback(sentence, idx)}
                                       >
-                                        Save Card
+                                        {savedCards.has(idx) ? '✅ Saved!' : 'Save Card'}
                                       </button>
                                     </div>
                                   </div>
