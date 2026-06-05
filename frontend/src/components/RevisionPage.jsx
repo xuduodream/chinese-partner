@@ -5,7 +5,7 @@ import StudySession from './StudySession';
 import DeckMoveModal from './DeckMoveModal';
 import RenameModal from './RenameModal';
 
-const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0 }) => {
+const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0, onViewChange }) => {
   const [view, setView] = useState('deck-list'); // 'deck-list', 'deck-review', or 'study-session'
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [decks, setDecks] = useState([]);
@@ -13,6 +13,10 @@ const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0 }) => {
   const [deckToMove, setDeckToMove] = useState(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [deckToRename, setDeckToRename] = useState(null);
+
+  useEffect(() => {
+    if (onViewChange) onViewChange(view);
+  }, [view]);
 
   useEffect(() => {
     if (currentProfile) {

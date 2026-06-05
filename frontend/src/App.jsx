@@ -19,6 +19,7 @@ function App() {
   const [migrationComplete, setMigrationComplete] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [deckListVersion, setDeckListVersion] = useState(0);
+  const [showProfileBar, setShowProfileBar] = useState(true);
 
   useEffect(() => {
     // Check for data migration on app load
@@ -152,7 +153,7 @@ function App() {
           )}
 
           {/* Profile and Deck Management - shown on Review page only */}
-          {showRevision && (
+          {showRevision && showProfileBar && (
             <div className="study-context">
               <div className="profile-deck-bar">
                 <div className="profile-section">
@@ -386,6 +387,7 @@ function App() {
                 currentProfile={currentProfile}
                 currentDeck={currentDeck}
                 refreshTrigger={deckListVersion}
+                onViewChange={(view) => setShowProfileBar(view === 'deck-list')}
               />
             )}
           </main>
