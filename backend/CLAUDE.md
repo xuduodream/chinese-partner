@@ -67,7 +67,7 @@ cp .env.example .env  # Add your LongCat API key to .env
 ## Configuration Requirements
 
 ### Environment Variables
-- `LONGCHAT_API_KEY` - Required API key from LongCat platform
+- `LLM_API_KEY` - Required API key for LLM provider (e.g., LongCat)
 
 ### File Structure Requirements
 ```

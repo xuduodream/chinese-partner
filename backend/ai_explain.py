@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-LONGCHAT_API_KEY = os.getenv("LONGCHAT_API_KEY")
-LONGCHAT_API_URL = "https://api.longcat.chat/openai/v1/chat/completions"
+LLM_API_KEY = os.getenv("LLM_API_KEY")
+LLM_API_URL = os.getenv("LLM_API_URL")
+LLM_MODEL = os.getenv("LLM_MODEL")
 
 def build_prompt(phrase: str, target_lang: str) -> str:
     """Build prompt for AI based on target language."""
@@ -38,18 +39,18 @@ Use English for all explanations. Output ONLY valid JSON, nothing else."""
 
 async def explain_phrase(phrase: str, target_lang: str) -> dict:
     """
-    Call LongCat API to explain a Chinese phrase.
+    Call the LLM API to explain a Chinese phrase.
     Returns dict with keys: translation, context, grammar, example
     """
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
-            LONGCHAT_API_URL,
+            LLM_API_URL,
             headers={
-                "Authorization": f"Bearer {LONGCHAT_API_KEY}",
+                "Authorization": f"Bearer {LLM_API_KEY}",
                 "Content-Type": "application/json"
             },
             json={
-                "model": "LongCat-Flash-Chat",
+                "model": LLM_MODEL,
                 "messages": [
                     {"role": "user", "content": build_prompt(phrase, target_lang)}
                 ],
