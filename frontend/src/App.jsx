@@ -359,19 +359,6 @@ function App() {
                                     </div>
                                     <div className="explanation-actions">
                                       <button
-                                        className="audio-btn-expanded"
-                                        onClick={() => {
-                                          if (window.speechSynthesis) {
-                                            const utterance = new SpeechSynthesisUtterance(sentence.original);
-                                            utterance.lang = 'zh-CN';
-                                            window.speechSynthesis.speak(utterance);
-                                          }
-                                        }}
-                                        title="Listen to Chinese"
-                                      >
-                                        🔊 Listen Chinese
-                                      </button>
-                                      <button
                                         className="save-btn-expanded"
                                         onClick={() => handleSaveCard(sentence)}
                                       >
