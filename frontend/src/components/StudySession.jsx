@@ -6,6 +6,7 @@ const StudySession = ({ deck, onComplete }) => {
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     total: 0,
     studied: 0,
@@ -48,14 +49,14 @@ const StudySession = ({ deck, onComplete }) => {
       correct: prev.correct + (difficulty !== 'hard' ? 1 : 0)
     }));
 
-    // Move to next card or complete session
+    // Move to next card or show completion summary
     if (currentIndex < cards.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setShowAnswer(false);
     } else {
-      onComplete();
+      setCompleted(true);
     }
-  }, [currentCard?.id, currentIndex, cards.length, onComplete]);
+  }, [currentCard?.id, currentIndex, cards.length]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -89,6 +90,45 @@ const StudySession = ({ deck, onComplete }) => {
   }, [showAnswer, handleRating]);
 
   if (!currentCard) {
+    if (completed) {
+      const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
+
+      return (
+        <div className="study-session">
+          <div className="study-header">
+            <h2>Study Complete: {deck.name}</h2>
+            <button onClick={onComplete} className="exit-btn">
+              Exit
+            </button>
+          </div>
+
+          <div className="completion-summary">
+            <h3>🎉 Session Complete!</h3>
+            <div className="completion-stats">
+              <div className="completion-stat">
+                <span className="completion-stat-value">{sessionStats.total}</span>
+                <span className="completion-stat-label">Total Cards</span>
+              </div>
+              <div className="completion-stat">
+                <span className="completion-stat-value">{sessionStats.correct}</span>
+                <span className="completion-stat-label">Correct</span>
+              </div>
+              <div className="completion-stat">
+                <span className="completion-stat-value">{sessionStats.studied - sessionStats.correct}</span>
+                <span className="completion-stat-label">Hard</span>
+              </div>
+              <div className="completion-stat">
+                <span className="completion-stat-value">{accuracy}%</span>
+                <span className="completion-stat-label">Accuracy</span>
+              </div>
+            </div>
+            <button onClick={onComplete} className="exit-btn" style={{ marginTop: '24px' }}>
+              Exit Study
+            </button>
+          </div>
+        </div>
+      );
+    }
     return <div>Loading...</div>;
   }
 
