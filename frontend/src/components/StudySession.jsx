@@ -141,15 +141,6 @@ const StudySession = ({ deck, onComplete }) => {
         </button>
       </div>
 
-      <StudyStats
-        stats={{
-          total: cards.length,
-          studied: sessionStats.studied,
-          correct: sessionStats.correct,
-          streak: 0 // TODO: Add streak tracking
-        }}
-      />
-
       <div className="study-card" onClick={() => showAnswer || setShowAnswer(true)}>
         <div className="card-content">
           <h3>{currentCard.original}</h3>
@@ -238,6 +229,15 @@ const StudySession = ({ deck, onComplete }) => {
           )}
         </div>
       </div>
+
+      <StudyStats
+        stats={{
+          total: cards.length,
+          studied: sessionStats.studied,
+          correct: sessionStats.correct,
+          streak: 0 // TODO: Add streak tracking
+        }}
+      />
 
     </div>
   );
