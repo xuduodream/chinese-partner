@@ -39,6 +39,8 @@ const StudySession = ({ deck, onComplete }) => {
   const currentCard = cards[currentIndex];
 
   const handleRating = useCallback((difficulty) => {
+    if (completed) return;
+
     // Update card difficulty in storage
     updateCardDifficulty(currentCard.id, difficulty);
 
@@ -89,46 +91,44 @@ const StudySession = ({ deck, onComplete }) => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [showAnswer, handleRating]);
 
-  if (!currentCard) {
-    if (completed) {
-      const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
+  if (completed) {
+    const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
 
-      return (
-        <div className="study-session">
-          <div className="study-header">
-            <h2>Study Complete: {deck.name}</h2>
-            <button onClick={onComplete} className="exit-btn">
-              Exit
-            </button>
-          </div>
+    return (
+      <div className="study-session">
+        <div className="study-header">
+          <h2>Study Complete: {deck.name}</h2>
+          <button onClick={onComplete} className="exit-btn">
+            Exit
+          </button>
+        </div>
 
-          <div className="completion-summary">
-            <h3>🎉 Session Complete!</h3>
-            <div className="completion-stats">
-              <div className="completion-stat">
-                <span className="completion-stat-value">{sessionStats.total}</span>
-                <span className="completion-stat-label">Total Cards</span>
-              </div>
-              <div className="completion-stat">
-                <span className="completion-stat-value">{sessionStats.correct}</span>
-                <span className="completion-stat-label">Correct</span>
-              </div>
-              <div className="completion-stat">
-                <span className="completion-stat-value">{sessionStats.studied - sessionStats.correct}</span>
-                <span className="completion-stat-label">Hard</span>
-              </div>
-              <div className="completion-stat">
-                <span className="completion-stat-value">{accuracy}%</span>
-                <span className="completion-stat-label">Accuracy</span>
-              </div>
+        <div className="completion-summary">
+          <h3>🎉 Session Complete!</h3>
+          <div className="completion-stats">
+            <div className="completion-stat">
+              <span className="completion-stat-value">{sessionStats.total}</span>
+              <span className="completion-stat-label">Total Cards</span>
             </div>
-            <button onClick={onComplete} className="exit-btn" style={{ marginTop: '24px' }}>
-              Exit Study
-            </button>
+            <div className="completion-stat">
+              <span className="completion-stat-value">{sessionStats.correct}</span>
+              <span className="completion-stat-label">Correct</span>
+            </div>
+            <div className="completion-stat">
+              <span className="completion-stat-value">{sessionStats.studied - sessionStats.correct}</span>
+              <span className="completion-stat-label">Hard</span>
+            </div>
+            <div className="completion-stat">
+              <span className="completion-stat-value">{accuracy}%</span>
+              <span className="completion-stat-label">Accuracy</span>
+            </div>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  }
+
+  if (!currentCard) {
     return <div>Loading...</div>;
   }
 
