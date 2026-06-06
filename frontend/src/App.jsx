@@ -187,7 +187,7 @@ function App() {
         {/* Main Content Area */}
         <div className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
           {/* Language Selector - shown on Import page only */}
-          {!showLanding && !showRevision && (
+          {!showLanding && !showRevision && !showBackup && (
             <div className="lang-selector">
               <select
                 value={targetLang}

@@ -340,8 +340,8 @@ function BackupRestorePage() {
             )}
 
             <div className="backup-warning">
-              ⚠️ The backup will be restored as a new profile with a new name
-              (never overwrites your existing data).
+              ⚠️ If a profile with the same name already exists, it will be
+              overwritten (decks and cards replaced).
             </div>
 
             <div className="backup-preview-actions">

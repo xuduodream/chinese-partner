@@ -1,4 +1,4 @@
-import { getProfiles, getProfileById, getDecks, getCards, createProfile, createDeck, saveCard } from './storage';
+import { getProfiles, getProfileById, getDecks, getCards, createProfile, createDeck, saveCard, deleteProfile } from './storage';
 
 // ── Download a blob as a file ──────────────────────────────────────────
 
@@ -111,17 +111,16 @@ export const exportAll = () => {
   return backup;
 };
 
-// ── Generate a unique profile name to avoid collisions ──────────────
+// ── If a profile with this name exists, delete it first (overwrite) ──
 
-const makeUniqueProfileName = (baseName) => {
-  const existing = getProfiles().map((p) => p.name.toLowerCase());
-  if (!existing.includes(baseName.toLowerCase())) return baseName;
-
-  let counter = 1;
-  while (existing.includes(`${baseName} (imported ${counter})`.toLowerCase())) {
-    counter++;
+const ensureProfileAvailable = (name) => {
+  const existing = getProfiles().find(
+    (p) => p.name.toLowerCase() === name.toLowerCase()
+  );
+  if (existing) {
+    deleteProfile(existing.id);
   }
-  return `${baseName} (imported ${counter})`;
+  return name;
 };
 
 // ── Import a backup file ────────────────────────────────────────────
@@ -147,7 +146,7 @@ export const importBackup = (backupData) => {
 
   if (backupData.meta.type === 'profile') {
     // Single profile import
-    const profileName = makeUniqueProfileName(backupData.profile.name);
+    const profileName = ensureProfileAvailable(backupData.profile.name);
     const profile = createProfile(
       profileName,
       backupData.profile.description || '',
@@ -171,7 +170,7 @@ export const importBackup = (backupData) => {
     const profileNameMap = {};
 
     for (const profileData of backupData.profiles || []) {
-      const name = makeUniqueProfileName(profileData.name);
+      const name = ensureProfileAvailable(profileData.name);
       const profile = createProfile(
         name,
         profileData.description || '',
