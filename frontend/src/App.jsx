@@ -5,6 +5,7 @@ import RevisionPage from './components/RevisionPage';
 import ProfileManager from './components/ProfileManager';
 import DeckManager from './components/DeckManager';
 import LandingPage from './components/LandingPage';
+import BackupRestorePage from './components/BackupRestorePage';
 import { saveCard, checkAndMigrateData, getProfiles, getDecks, getCards, createProfile, createDeck, getProfileById, renameProfile, deleteProfile } from './utils/storage';
 import './index.css';
 
@@ -13,6 +14,7 @@ function App() {
   const [targetLang, setTargetLang] = useState('en');
   const [showRevision, setShowRevision] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [showBackup, setShowBackup] = useState(false);
   const [currentProfile, setCurrentProfile] = useState(null);
   const [currentDeck, setCurrentDeck] = useState(null);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
@@ -140,16 +142,18 @@ function App() {
               onClick={() => {
                 setShowLanding(true);
                 setShowRevision(false);
+                setShowBackup(false);
               }}
             >
               <span className="nav-icon">🏠</span>
               <span className="nav-text">Home</span>
             </button>
             <button
-              className={!showRevision && !showLanding ? 'active' : ''}
+              className={!showRevision && !showLanding && !showBackup ? 'active' : ''}
               onClick={() => {
                 setShowRevision(false);
                 setShowLanding(false);
+                setShowBackup(false);
               }}
             >
               <span className="nav-icon">📤</span>
@@ -160,10 +164,22 @@ function App() {
               onClick={() => {
                 setShowRevision(true);
                 setShowLanding(false);
+                setShowBackup(false);
               }}
             >
               <span className="nav-icon">📚</span>
               <span className="nav-text">Review</span>
+            </button>
+            <button
+              className={showBackup ? 'active' : ''}
+              onClick={() => {
+                setShowBackup(true);
+                setShowLanding(false);
+                setShowRevision(false);
+              }}
+            >
+              <span className="nav-icon">💾</span>
+              <span className="nav-text">Backup</span>
             </button>
           </div>
         </nav>
@@ -403,6 +419,8 @@ function App() {
           <main>
             {showLanding ? (
               <LandingPage onStart={() => setShowLanding(false)} />
+            ) : showBackup ? (
+              <BackupRestorePage />
             ) : !showRevision ? (
               <>
                 <ImageUpload onResults={handleResults} targetLang={targetLang} />
