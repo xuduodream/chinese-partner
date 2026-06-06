@@ -382,7 +382,19 @@ function App() {
 
                     {availableDecks.length === 0 ? (
                       <div className="no-decks-message">
-                        No decks in this profile. Please create a deck first.
+                        <p>No decks in this profile.</p>
+                        <button
+                          className="create-deck-inline-btn"
+                          onClick={() => {
+                            const name = prompt('New deck name:');
+                            if (name && name.trim()) {
+                              const deck = createDeck(selectedProfileId, name.trim(), '');
+                              handleSaveToDeck(deck.id);
+                            }
+                          }}
+                        >
+                          ＋ New Deck
+                        </button>
                       </div>
                     ) : (
                       <div className="deck-selection-list">

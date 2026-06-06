@@ -18,6 +18,20 @@ const PREFIX_PROFILE = 'p:';
 const PREFIX_DECK = 'd:';
 const PREFIX_CARD = 'c:';
 
+const formatNextReview = (card) => {
+  if (!card.nextReview) return null;
+  const now = new Date();
+  const next = new Date(card.nextReview);
+  const diffMs = next - now;
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMs <= 0) return { text: '🔴 due', urgent: true };
+  if (diffDays === 0) return { text: '🔴 due today', urgent: true };
+  if (diffDays === 1) return { text: '📅 tomorrow', urgent: false };
+  if (diffDays < 30) return { text: `📅 ${diffDays}d`, urgent: false };
+  return { text: `📅 ${next.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`, urgent: false };
+};
+
 function DeckManagerPage() {
   // ── Data ──────────────────────────────────────────────────────────────
 
@@ -343,6 +357,11 @@ function DeckManagerPage() {
                                     <span className={`difficulty-badge difficulty-${c.difficulty || 'new'}`}>
                                       {c.difficulty || 'new'}
                                     </span>
+                                    {formatNextReview(c) && (
+                                      <span className={`next-review-badge ${formatNextReview(c).urgent ? 'due' : ''}`}>
+                                        {formatNextReview(c).text}
+                                      </span>
+                                    )}
                                     <span className="actions-col">
                                       <button
                                         className="action-icon-btn"

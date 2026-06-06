@@ -470,6 +470,26 @@ header h1 {
   font-style: italic;
 }
 
+.no-decks-message p {
+  margin-bottom: 12px;
+}
+
+.create-deck-inline-btn {
+  padding: 8px 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.create-deck-inline-btn:hover {
+  background: var(--primary-dark);
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -4305,5 +4325,135 @@ button.danger:hover {
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
+  }
+}
+
+/* ── SM-2 Feedback & Rating Info ──────────────────────────────────── */
+
+/* After-rating feedback banner */
+.rating-feedback {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rating-feedback.again {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.rating-feedback.hard {
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+
+.rating-feedback.good {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.rating-feedback.easy {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.rating-feedback-text {
+  font-weight: 600;
+}
+
+.rating-feedback-ease {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Rating explainer */
+.sm2-explainer {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sm2-explainer summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 4px 0;
+  user-select: none;
+}
+
+.sm2-explainer summary:hover {
+  color: var(--text-primary);
+}
+
+.sm2-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.sm2-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.sm2-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f3f4f6;
+  color: var(--text-primary);
+}
+
+.sm2-table td:first-child {
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.sm2-table strong {
+  font-weight: 600;
+}
+
+/* Next-review badge in card rows */
+.next-review-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.next-review-badge.due {
+  background: #fee2e2;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .rating-feedback {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .sm2-table {
+    font-size: 11px;
   }
 }

@@ -6,6 +6,20 @@ import {
 } from '../utils/storage';
 import { ProgressBar, StudyStats } from './ProgressStats';
 
+const formatNextReviewLabel = (nextReviewIso) => {
+  if (!nextReviewIso) return 'not scheduled';
+  const now = new Date();
+  const next = new Date(nextReviewIso);
+  const diffMs = next - now;
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMs <= 0) return 'due now';
+  if (diffDays === 0) return 'later today';
+  if (diffDays === 1) return 'tomorrow';
+  if (diffDays < 30) return `in ${diffDays} days`;
+  return `on ${next.toLocaleDateString()}`;
+};
+
 const StudySession = ({ deck, onComplete }) => {
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,6 +35,7 @@ const StudySession = ({ deck, onComplete }) => {
     good: 0,
     easy: 0,
   });
+  const [lastRating, setLastRating] = useState(null);
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
@@ -50,8 +65,18 @@ const StudySession = ({ deck, onComplete }) => {
     (rating) => {
       if (completed || !currentCard) return;
 
-      // Save SM-2 schedule
-      updateCardDifficulty(currentCard.id, rating);
+      // Save SM-2 schedule and capture result
+      const result = updateCardDifficulty(currentCard.id, rating);
+
+      // Show next-review feedback
+      if (result.success) {
+        setLastRating({
+          rating,
+          nextReview: result.nextReview,
+          interval: result.interval,
+          easeFactor: result.easeFactor,
+        });
+      }
 
       // Update session stats
       setSessionStats((prev) => ({
@@ -204,6 +229,23 @@ const StudySession = ({ deck, onComplete }) => {
         </button>
       </div>
 
+      {/* ── Feedback banner ──────────────────────────────── */}
+      {lastRating && (
+        <div className={`rating-feedback ${lastRating.rating}`}>
+          <span className="rating-feedback-text">
+            {lastRating.rating === 'again' && '🔴 Again'}
+            {lastRating.rating === 'hard' && '🟠 Hard'}
+            {lastRating.rating === 'good' && '🟢 Good'}
+            {lastRating.rating === 'easy' && '🔵 Easy'}
+            {' · '}
+            {formatNextReviewLabel(lastRating.nextReview)}
+          </span>
+          <span className="rating-feedback-ease">
+            Ease: {lastRating.easeFactor?.toFixed(2)}
+          </span>
+        </div>
+      )}
+
       <div
         className="study-card"
         onClick={() => showAnswer || setShowAnswer(true)}
@@ -302,6 +344,36 @@ const StudySession = ({ deck, onComplete }) => {
                 Keyboard: 1=Again, 2=Hard, 3=Good, 4=Easy, Space=Show Answer
               </small>
             </div>
+
+            <details className="sm2-explainer">
+              <summary>ℹ️ How ratings work</summary>
+              <table className="sm2-table">
+                <thead>
+                  <tr>
+                    <th>Rating</th>
+                    <th>Effect on schedule</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>🔴 Again</td>
+                    <td>Resets progress. Next review: <strong>1 day</strong>. Ease −0.20</td>
+                  </tr>
+                  <tr>
+                    <td>🟠 Hard</td>
+                    <td>Interval × 1.2. Next review soon. Ease −0.15</td>
+                  </tr>
+                  <tr>
+                    <td>🟢 Good</td>
+                    <td>Standard SM‑2: 1d → 6d → × ease. Ease +0.15</td>
+                  </tr>
+                  <tr>
+                    <td>🔵 Easy</td>
+                    <td>Accelerated: 4d → 10d → × ease × 1.3. Ease +0.30</td>
+                  </tr>
+                </tbody>
+              </table>
+            </details>
           </div>
         </div>
       </div>

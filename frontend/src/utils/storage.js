@@ -528,7 +528,13 @@ export const updateCardDifficulty = (cardId, difficulty) => {
     };
 
     localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(cards));
-    return { success: true, message: 'Card difficulty updated' };
+    return {
+      success: true,
+      message: 'Card difficulty updated',
+      nextReview: sm2.nextReview,
+      interval: sm2.interval,
+      easeFactor: sm2.easeFactor,
+    };
   } catch (error) {
     console.error('Error updating card difficulty:', error);
     return { success: false, message: 'Failed to update card difficulty' };
@@ -560,12 +566,14 @@ export const getDeckStudyStats = (deckId) => {
 
 // ── SM-2 Query Functions ────────────────────────────────────────────
 
-// Cards due for review in a deck (nextReview is null/past, or never reviewed)
+// Cards due for review in a deck (previously reviewed and past due date)
 export const getCardsDueForReview = (deckId) => {
   const now = new Date();
   return getCards(deckId).filter((c) => {
-    if (!c.nextReview) return true; // new card, due immediately
-    if (!c.repetitions && c.repetitions !== 0) return true; // legacy card, no SM-2 data
+    // Must have been reviewed before (has a nextReview date)
+    if (!c.nextReview) return false;
+    // Legacy card without SM-2 data — treat as new, not due
+    if (!c.repetitions && c.repetitions !== 0) return false;
     return new Date(c.nextReview) <= now;
   });
 };
