@@ -6,6 +6,7 @@ import ProfileManager from './components/ProfileManager';
 import DeckManager from './components/DeckManager';
 import LandingPage from './components/LandingPage';
 import BackupRestorePage from './components/BackupRestorePage';
+import DeckManagerPage from './components/DeckManagerPage';
 import { saveCard, checkAndMigrateData, getProfiles, getDecks, getCards, createProfile, createDeck, getProfileById, renameProfile, deleteProfile } from './utils/storage';
 import './index.css';
 
@@ -15,6 +16,7 @@ function App() {
   const [showRevision, setShowRevision] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
   const [showBackup, setShowBackup] = useState(false);
+  const [showDeckManager, setShowDeckManager] = useState(false);
   const [currentProfile, setCurrentProfile] = useState(null);
   const [currentDeck, setCurrentDeck] = useState(null);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
@@ -143,17 +145,19 @@ function App() {
                 setShowLanding(true);
                 setShowRevision(false);
                 setShowBackup(false);
+                setShowDeckManager(false);
               }}
             >
               <span className="nav-icon">🏠</span>
               <span className="nav-text">Home</span>
             </button>
             <button
-              className={!showRevision && !showLanding && !showBackup ? 'active' : ''}
+              className={!showRevision && !showLanding && !showBackup && !showDeckManager ? 'active' : ''}
               onClick={() => {
                 setShowRevision(false);
                 setShowLanding(false);
                 setShowBackup(false);
+                setShowDeckManager(false);
               }}
             >
               <span className="nav-icon">📤</span>
@@ -165,10 +169,23 @@ function App() {
                 setShowRevision(true);
                 setShowLanding(false);
                 setShowBackup(false);
+                setShowDeckManager(false);
               }}
             >
               <span className="nav-icon">📚</span>
               <span className="nav-text">Review</span>
+            </button>
+            <button
+              className={showDeckManager ? 'active' : ''}
+              onClick={() => {
+                setShowDeckManager(true);
+                setShowLanding(false);
+                setShowRevision(false);
+                setShowBackup(false);
+              }}
+            >
+              <span className="nav-icon">🗂️</span>
+              <span className="nav-text">Manager</span>
             </button>
             <button
               className={showBackup ? 'active' : ''}
@@ -176,6 +193,7 @@ function App() {
                 setShowBackup(true);
                 setShowLanding(false);
                 setShowRevision(false);
+                setShowDeckManager(false);
               }}
             >
               <span className="nav-icon">💾</span>
@@ -187,7 +205,7 @@ function App() {
         {/* Main Content Area */}
         <div className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
           {/* Language Selector - shown on Import page only */}
-          {!showLanding && !showRevision && !showBackup && (
+          {!showLanding && !showRevision && !showBackup && !showDeckManager && (
             <div className="lang-selector">
               <select
                 value={targetLang}
@@ -418,9 +436,14 @@ function App() {
 
           <main>
             {showLanding ? (
-              <LandingPage onStart={() => setShowLanding(false)} />
+              <LandingPage onStart={() => {
+                setShowLanding(false);
+                setShowDeckManager(false);
+              }} />
             ) : showBackup ? (
               <BackupRestorePage />
+            ) : showDeckManager ? (
+              <DeckManagerPage />
             ) : !showRevision ? (
               <>
                 <ImageUpload onResults={handleResults} targetLang={targetLang} />

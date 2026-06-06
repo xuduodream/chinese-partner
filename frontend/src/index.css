@@ -3272,7 +3272,7 @@ button.danger:hover {
 .landing-content {
   max-width: 800px;
   text-align: center;
-  padding: 60px 40px;
+  padding: 16px 40px 40px;
 }
 
 .landing-content h1 {
@@ -3872,5 +3872,375 @@ button.danger:hover {
 
   .backup-file-upload {
     padding: 24px 16px;
+  }
+}
+
+/* ── Deck Manager Page ─────────────────────────────────────────────── */
+
+.manager-page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.manager-header {
+  margin-bottom: 24px;
+}
+
+.manager-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.manager-subtitle {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* Toolbar */
+.manager-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+}
+
+.manager-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.manager-select-all input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.manager-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.manager-selected-count {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.manager-batch-delete {
+  padding: 6px 14px;
+  border: 1px solid var(--danger-color);
+  border-radius: 6px;
+  background: var(--danger-color);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manager-batch-delete:hover:not(:disabled) {
+  background: var(--danger-dark);
+}
+
+.manager-batch-delete:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.manager-batch-delete.hidden {
+  display: none;
+}
+
+/* Table container */
+.manager-table-container {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.manager-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.manager-table thead th {
+  background: #f9fafb;
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+}
+
+.manager-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.manager-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.manager-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Depth indentation */
+.depth-0 .checkbox-col { padding-left: 12px; }
+.depth-1 .checkbox-col { padding-left: 48px; }
+.depth-2 .checkbox-col { padding-left: 84px; }
+
+.checkbox-col {
+  width: 36px;
+  text-align: center;
+  padding: 10px 4px;
+  vertical-align: middle;
+}
+
+.checkbox-col input[type="checkbox"] {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+}
+
+.entity-col {
+  padding: 10px 12px 10px 4px;
+  vertical-align: middle;
+}
+
+.entity-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Toggle expand/collapse icon */
+.toggle-icon {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 10px;
+  width: 16px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+  line-height: 1;
+}
+
+.toggle-icon:hover {
+  color: var(--text-primary);
+}
+
+.entity-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.entity-meta {
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.entity-date {
+  color: #9ca3af;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Card text in depth-2 rows */
+.entity-card-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.card-original {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.card-pinyin {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.card-translation {
+  color: var(--text-primary);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* Difficulty badge */
+.difficulty-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.difficulty-new {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.difficulty-hard {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.difficulty-good {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.difficulty-easy {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+/* Actions column */
+.actions-col {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.action-icon-btn {
+  background: none;
+  border: 1px solid transparent;
+  padding: 2px 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.action-icon-btn:hover {
+  opacity: 1;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.action-icon-btn.danger:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* Empty state */
+.manager-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.manager-empty p {
+  font-size: 14px;
+}
+
+/* Card form modal: wider */
+.card-form-modal {
+  max-width: 560px;
+}
+
+/* Form row: side-by-side fields */
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .manager-page {
+    padding: 0;
+  }
+
+  .manager-table-container {
+    overflow-x: auto;
+  }
+
+  .depth-1 .checkbox-col { padding-left: 36px; }
+  .depth-2 .checkbox-col { padding-left: 60px; }
+
+  .entity-name {
+    max-width: 120px;
+    font-size: 13px;
+  }
+
+  .entity-card-text {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .card-original,
+  .card-pinyin,
+  .card-translation {
+    max-width: 100px;
+    font-size: 12px;
+  }
+
+  .actions-col {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .manager-toolbar {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
   }
 }
