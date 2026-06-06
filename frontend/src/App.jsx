@@ -482,7 +482,7 @@ function App() {
                                 <td className="actions-cell">
                                   <div className="flashcard-actions">
                                     <button
-                                      className="audio-btn-table"
+                                      className="action-pill"
                                       onClick={() => {
                                         if (window.speechSynthesis) {
                                           const utterance = new SpeechSynthesisUtterance(sentence.original);
@@ -492,10 +492,10 @@ function App() {
                                       }}
                                       title="Listen to Chinese"
                                     >
-                                      🇨🇳
+                                      🔊 Chinese
                                     </button>
                                     <button
-                                      className="audio-btn-table audio-translate-btn"
+                                      className="action-pill"
                                       onClick={() => {
                                         if (window.speechSynthesis) {
                                           const utterance = new SpeechSynthesisUtterance(sentence.translation);
@@ -505,21 +505,30 @@ function App() {
                                       }}
                                       title="Listen to Translation"
                                     >
-                                      🌐
+                                      🔊 Translation
                                     </button>
                                     <button
-                                      className="explanation-toggle-btn"
+                                      className="action-pill show-details"
                                       onClick={(e) => {
                                         const row = e.currentTarget.closest('tr');
                                         const explanationRow = row.nextElementSibling;
                                         if (explanationRow && explanationRow.classList.contains('explanation-row')) {
                                           explanationRow.style.display = explanationRow.style.display === 'none' ? 'table-row' : 'none';
-                                          e.currentTarget.textContent = explanationRow.style.display === 'none' ? '💡' : '💡';
                                         }
                                       }}
                                     >
-                                      💡
+                                      💡 Details
                                     </button>
+                                    {savedCards.has(idx) ? (
+                                      <button className="action-pill save" disabled>✅ Saved</button>
+                                    ) : (
+                                      <button
+                                        className="action-pill save"
+                                        onClick={() => handleSaveCardWithFeedback(sentence, idx)}
+                                      >
+                                        💾 Save
+                                      </button>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -530,14 +539,6 @@ function App() {
                                       <div><strong>Context:</strong> {sentence.context}</div>
                                       <div><strong>Grammar:</strong> {sentence.grammar}</div>
                                       <div><strong>Example:</strong> {sentence.example}</div>
-                                    </div>
-                                    <div className="explanation-actions">
-                                      <button
-                                        className="save-btn-expanded"
-                                        onClick={() => handleSaveCardWithFeedback(sentence, idx)}
-                                      >
-                                        {savedCards.has(idx) ? '✅ Saved!' : 'Save Card'}
-                                      </button>
                                     </div>
                                   </div>
                                 </td>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   getStudyQueue,
+  getCardsDueForReview,
   updateCardDifficulty,
   updateDeckLastStudied,
 } from '../utils/storage';
@@ -36,6 +37,7 @@ const StudySession = ({ deck, onComplete }) => {
     easy: 0,
   });
   const [lastRating, setLastRating] = useState(null);
+  const [relearning, setRelearning] = useState(false);
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
@@ -85,11 +87,23 @@ const StudySession = ({ deck, onComplete }) => {
         [rating]: (prev[rating] || 0) + 1,
       }));
 
-      // Move to next card or show completion
+      // Move to next card or check for relearning cards
       if (currentIndex < cards.length - 1) {
         setCurrentIndex((prev) => prev + 1);
         setShowAnswer(false);
       } else {
+        // Check if any cards became due during this session (Again/Hard)
+        const freshDue = getCardsDueForReview(deck.id);
+        if (freshDue.length > 0) {
+          setCards(freshDue);
+          setCurrentIndex(0);
+          setShowAnswer(false);
+          setRelearning(true);
+          setLastRating(null);
+          setSessionStats((prev) => ({ ...prev, total: prev.total + freshDue.length }));
+          return;
+        }
+        // Truly done — no more cards due
         setCompleted(true);
         updateDeckLastStudied(deck.id);
       }
@@ -219,9 +233,11 @@ const StudySession = ({ deck, onComplete }) => {
         <h2>{deck.name}</h2>
         <div className="study-progress-info">
           <span className="progress-text">
+            {relearning && <span>🔄 </span>}
             {remaining} remaining
-            {dueCount > 0 && <span> · {dueCount} due</span>}
-            {newCount > 0 && <span> · {newCount} new</span>}
+            {dueCount > 0 && !relearning && <span> · {dueCount} due</span>}
+            {newCount > 0 && !relearning && <span> · {newCount} new</span>}
+            {relearning && <span> relearning</span>}
           </span>
         </div>
         <button onClick={onComplete} className="exit-btn">
@@ -238,7 +254,9 @@ const StudySession = ({ deck, onComplete }) => {
             {lastRating.rating === 'good' && '🟢 Good'}
             {lastRating.rating === 'easy' && '🔵 Easy'}
             {' · '}
-            {formatNextReviewLabel(lastRating.nextReview)}
+            {lastRating.rating === 'again' ? 'repeats this session' :
+             lastRating.rating === 'hard' ? 'in 5 minutes' :
+             formatNextReviewLabel(lastRating.nextReview)}
           </span>
           <span className="rating-feedback-ease">
             Ease: {lastRating.easeFactor?.toFixed(2)}
@@ -357,11 +375,11 @@ const StudySession = ({ deck, onComplete }) => {
                 <tbody>
                   <tr>
                     <td>🔴 Again</td>
-                    <td>Resets progress. Next review: <strong>1 day</strong>. Ease −0.20</td>
+                    <td>Resets progress. Repeats <strong>this session</strong>. Ease −0.20</td>
                   </tr>
                   <tr>
                     <td>🟠 Hard</td>
-                    <td>Interval × 1.2. Next review soon. Ease −0.15</td>
+                    <td>Short pause. Reviews in <strong>5 minutes</strong>. Ease −0.15</td>
                   </tr>
                   <tr>
                     <td>🟢 Good</td>

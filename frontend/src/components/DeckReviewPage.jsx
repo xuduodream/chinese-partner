@@ -65,27 +65,6 @@ const DeckReviewPage = ({ deck, onBack }) => {
     }
   };
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.actions-dropdown')) {
-        const actionDropdowns = document.querySelectorAll('.actions-menu');
-        actionDropdowns.forEach(dropdown => {
-          dropdown.style.display = 'none';
-        });
-      }
-      if (!event.target.closest('.audio-dropdown')) {
-        const audioDropdowns = document.querySelectorAll('.audio-menu');
-        audioDropdowns.forEach(dropdown => {
-          dropdown.style.display = 'none';
-        });
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
   if (!deck) {
     return (
       <div className="deck-review-page">
@@ -120,8 +99,11 @@ const DeckReviewPage = ({ deck, onBack }) => {
                 <div className="review-front">
                   <h3>{card.original}</h3>
                   <p className="pinyin">{card.pinyin}</p>
-                  <button onClick={() => setSelectedCard(selectedCard?.id === card.id ? null : card)}>
-                    {selectedCard?.id === card.id ? 'Hide' : 'Show Explanation'}
+                  <button
+                    className="action-pill show-details"
+                    onClick={() => setSelectedCard(selectedCard?.id === card.id ? null : card)}
+                  >
+                    {selectedCard?.id === card.id ? '👁️ Hide' : '👁️ Show Explanation'}
                   </button>
                 </div>
 
@@ -136,87 +118,37 @@ const DeckReviewPage = ({ deck, onBack }) => {
                     <p><strong>Example:</strong> {card.example}</p>
 
                     <div className="card-bottom-actions">
-                      <div className="audio-dropdown">
+                      <div className="audio-section">
                         <button
                           className="audio-btn"
-                          onClick={(e) => {
-                            const dropdown = e.currentTarget.nextElementSibling;
-                            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                          }}
-                          title="Audio options"
+                          onClick={(e) => { e.stopPropagation(); speak(card.original, 'zh-CN'); }}
+                          title="Listen to Chinese"
                         >
-                          ⋮ Listen
+                          🔊 Chinese
                         </button>
-                        <div className="audio-menu">
-                          <button
-                            className="audio-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              speak(card.original, 'zh-CN');
-                              e.currentTarget.closest('.audio-menu').style.display = 'none';
-                            }}
-                          >
-                            🔊 Chinese Only
-                          </button>
-                          <button
-                            className="audio-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US');
-                              e.currentTarget.closest('.audio-menu').style.display = 'none';
-                            }}
-                          >
-                            🔊 Translation Only
-                          </button>
-                          <button
-                            className="audio-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              speak(card.original, 'zh-CN');
-                              setTimeout(() => {
-                                speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US');
-                              }, 2000);
-                              e.currentTarget.closest('.audio-menu').style.display = 'none';
-                            }}
-                          >
-                            🔊 Both Sequential
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="actions-dropdown">
                         <button
-                          className="actions-btn"
-                          onClick={(e) => {
-                            const dropdown = e.currentTarget.nextElementSibling;
-                            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                          }}
-                          title="Card actions"
+                          className="audio-btn"
+                          onClick={(e) => { e.stopPropagation(); speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US'); }}
+                          title="Listen to Translation"
                         >
-                          ⋮ Actions
+                          🔊 Translation
                         </button>
-                        <div className="actions-menu">
-                          <button
-                            className="action-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMoveCard(card);
-                              e.currentTarget.closest('.actions-menu').style.display = 'none';
-                            }}
-                          >
-                            📁 Move to Deck
-                          </button>
-                          <button
-                            className="action-item delete-action"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(card.id);
-                              e.currentTarget.closest('.actions-menu').style.display = 'none';
-                            }}
-                          >
-                            🗑️ Delete Card
-                          </button>
-                        </div>
+                      </div>
+                      <div className="actions-col">
+                        <button
+                          className="action-pill"
+                          onClick={(e) => { e.stopPropagation(); handleMoveCard(card); }}
+                          title="Move to another deck"
+                        >
+                          📁 Move
+                        </button>
+                        <button
+                          className="action-pill danger"
+                          onClick={(e) => { e.stopPropagation(); handleDelete(card.id); }}
+                          title="Delete card"
+                        >
+                          🗑️ Delete
+                        </button>
                       </div>
                     </div>
                   </div>

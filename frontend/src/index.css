@@ -933,92 +933,6 @@ header h1 {
   font-weight: 600;
 }
 
-.actions-cell {
-  width: 1%;
-  white-space: nowrap;
-  min-width: 140px;
-}
-
-.flashcard-actions {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.audio-btn-table {
-  padding: 4px;
-  border: 1px solid #e5e7eb;
-  border-radius: 3px;
-  background: #f9fafb;
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-.audio-btn-table:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.audio-translate-btn {
-  background: #e8f5e9;
-  border-color: #a5d6a7;
-  color: #2e7d32;
-}
-
-.audio-translate-btn:hover {
-  background: #c8e6c9;
-  border-color: #66bb6a;
-}
-
-.save-btn-table {
-  padding: 4px 8px;
-  border: 1px solid #3b82f6;
-  border-radius: 3px;
-  background: #3b82f6;
-  color: white;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 500;
-  transition: all 0.2s;
-  white-space: nowrap;
-  height: 24px;
-}
-
-.save-btn-table:hover {
-  background: #2563eb;
-  border-color: #2563eb;
-}
-
-.explanation-toggle-btn {
-  padding: 4px;
-  border: 1px solid #e5e7eb;
-  border-radius: 3px;
-  background: #fff8e1;
-  color: #f9a825;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.explanation-toggle-btn:hover {
-  background: #ffecb3;
-  border-color: #fdd835;
-  color: #f57f17;
-}
-
 /* Expanded explanation row */
 .explanation-row {
   background: #f9fafb;
@@ -1050,48 +964,6 @@ header h1 {
   font-weight: 600;
 }
 
-.explanation-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.audio-btn-expanded {
-  padding: 6px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  background: #f9fafb;
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.audio-btn-expanded:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #374151;
-}
-
-.save-btn-expanded {
-  padding: 6px 12px;
-  border: 1px solid #3b82f6;
-  border-radius: 4px;
-  background: #3b82f6;
-  color: white;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.save-btn-expanded:hover {
-  background: #2563eb;
-  border-color: #2563eb;
-}
-
 /* Responsive tables */
 @media (max-width: 768px) {
   .decks-table,
@@ -1106,20 +978,6 @@ header h1 {
     padding: 8px 6px;
   }
 
-  .flashcard-actions {
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .audio-btn-table {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-  }
-
-  .save-btn-table {
-    padding: 4px 8px;
-    font-size: 10px;
   }
 }
 
@@ -1462,21 +1320,6 @@ header h1 {
   display: inline-block;
 }
 
-.audio-btn {
-  padding: 8px 12px;
-  background: #2196F3;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.audio-btn:hover {
-  background: #1976D2;
-}
-
 .audio-menu {
   display: none;
   position: absolute;
@@ -1774,29 +1617,6 @@ header h1 {
 .answer-content p {
   margin: 8px 0;
   line-height: 1.5;
-}
-
-.audio-section {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.audio-section .audio-btn {
-  background: #2196F3;
-  color: white !important;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.audio-section .audio-btn:hover {
-  background: #1976D2;
-  color: white !important;
 }
 
 .rating-section {
@@ -2105,14 +1925,6 @@ header h1 {
 .answer-content strong {
   color: var(--primary-color);
   font-weight: 600;
-}
-
-.audio-section {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin: 20px 0;
-  flex-wrap: wrap;
 }
 
 .keyboard-hint {
@@ -2630,17 +2442,7 @@ header {
     font-size: 1.3rem;
   }
 
-  .audio-buttons {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .audio-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .study-header {
+	  .study-header {
     padding: 10px 12px;
     gap: 8px;
   }
@@ -2690,21 +2492,7 @@ header {
     line-height: 1.4;
   }
 
-  .audio-section {
-    gap: 6px;
-    margin: 8px 0;
-    flex-wrap: nowrap;
-  }
-
-  .audio-section .audio-btn {
-    padding: 6px 6px;
-    font-size: 11px;
-    flex: 1;
-    white-space: nowrap;
-    min-width: 0;
-  }
-
-  .rating-section {
+	  .rating-section {
     margin-top: 12px;
     padding: 12px;
   }
@@ -3264,55 +3052,6 @@ button.success:hover {
 }
 
 /* Audio buttons */
-.audio-btn,
-.audio-buttons button {
-  background: #f3f4f6 !important;
-  border-color: #e5e7eb !important;
-  color: #6b7280 !important;
-  padding: 6px 12px !important;
-  font-size: 12px !important;
-}
-
-.audio-btn:hover,
-.audio-buttons button:hover {
-  background: #e5e7eb !important;
-  border-color: #d1d5db !important;
-  color: #374151 !important;
-}
-
-/* Primary action buttons */
-button.primary {
-  background: var(--primary-color);
-}
-
-button.primary:hover {
-  background: var(--primary-dark);
-}
-
-/* Danger/Warning buttons */
-button.danger {
-  background: var(--danger-color);
-}
-
-button.danger:hover {
-  background: var(--danger-dark);
-}
-
-/* Audio buttons */
-.audio-btn,
-.audio-buttons button {
-  background: var(--info-color) !important;
-  padding: 8px 16px !important;
-  font-size: 13px !important;
-  white-space: nowrap;
-  min-height: 36px;
-}
-
-.audio-btn:hover,
-.audio-buttons button:hover {
-  background: var(--primary-dark) !important;
-}
-
 .save-btn, .delete-btn {
   margin-top: 10px;
 }
@@ -4455,5 +4194,149 @@ button.danger:hover {
 
   .sm2-table {
     font-size: 11px;
+  }
+}
+
+/* ── Unified Audio & Action Buttons ───────────────────────────────── */
+
+/* Single source of truth for all audio/listen buttons */
+.audio-btn,
+.audio-buttons button,
+.audio-section .audio-btn,
+.audio-btn-table {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  min-height: 36px;
+}
+
+.audio-btn:hover,
+.audio-buttons button:hover,
+.audio-section .audio-btn:hover,
+.audio-btn-table:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+/* Pill-style action buttons for tables and card toolbars */
+.action-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  min-height: 36px;
+  line-height: 1;
+}
+
+.action-pill:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.action-pill.save {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.action-pill.save:hover:not(:disabled) {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.action-pill.danger:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.action-pill.show-details {
+  background: #fff8e1;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.action-pill.show-details:hover {
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+
+/* Pill button row in table cells */
+.flashcard-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.actions-cell {
+  width: 1%;
+  white-space: nowrap;
+  min-width: auto;
+}
+
+/* Deck review card actions inline */
+.card-bottom-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.audio-section {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+/* Responsive pill buttons */
+@media (max-width: 768px) {
+  .flashcard-actions {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .action-pill {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .audio-btn,
+  .audio-buttons button {
+    font-size: 12px;
+    padding: 6px 12px;
+    min-height: 32px;
+  }
+
+  .card-bottom-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

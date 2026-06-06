@@ -439,16 +439,17 @@ export const getAvailableTargetDecks = (cardId) => {
 
 const computeSM2 = (rating, { interval, easeFactor, repetitions }) => {
   let newInterval, newEase, newReps;
+  const now = new Date();
 
   switch (rating) {
-    case 'again': // forgot — reset progress
-      newInterval = 1;
+    case 'again': // forgot — repeat this session
+      newInterval = 0;
       newEase = Math.max(1.3, easeFactor - 0.2);
       newReps = 0;
       break;
 
-    case 'hard': // remembered with difficulty
-      newInterval = Math.max(1, Math.round(interval * 1.2));
+    case 'hard': // remembered with difficulty — short pause
+      newInterval = 0;
       newEase = Math.max(1.3, easeFactor - 0.15);
       newReps = repetitions + 1;
       break;
@@ -472,7 +473,7 @@ const computeSM2 = (rating, { interval, easeFactor, repetitions }) => {
     default:
       // Fallback for legacy 'hard'/'good'/'easy' values (pre-SM-2 cards)
       if (rating === 'hard') {
-        newInterval = Math.max(1, Math.round(interval * 1.2));
+        newInterval = 0;
         newEase = Math.max(1.3, easeFactor - 0.15);
         newReps = repetitions + 1;
       } else if (rating === 'easy') {
@@ -491,8 +492,15 @@ const computeSM2 = (rating, { interval, easeFactor, repetitions }) => {
       }
   }
 
-  const nextReviewDate = new Date();
-  nextReviewDate.setDate(nextReviewDate.getDate() + newInterval);
+  // Sub-day intervals for Again (immediate) and Hard (5 min)
+  let nextReviewDate;
+  if (rating === 'again') {
+    nextReviewDate = new Date(now.getTime());
+  } else if (rating === 'hard') {
+    nextReviewDate = new Date(now.getTime() + 5 * 60 * 1000);
+  } else {
+    nextReviewDate = new Date(now.getTime() + newInterval * 24 * 60 * 60 * 1000);
+  }
 
   return {
     interval: newInterval,
