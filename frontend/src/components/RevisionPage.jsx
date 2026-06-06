@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCards, deleteCard, getDecks, renameDeck, validateDeckName, deleteDeck, getDeckStudyStats } from '../utils/storage';
+import { getCards, deleteCard, getDecks, renameDeck, validateDeckName, deleteDeck, getDeckDueStats } from '../utils/storage';
 import DeckReviewPage from './DeckReviewPage';
 import StudySession from './StudySession';
 import DeckMoveModal from './DeckMoveModal';
@@ -175,6 +175,11 @@ const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0, onViewC
               <tbody>
                 {decks.map(deck => {
                   const deckCards = getCards(deck.id);
+                  const dueStats = getDeckDueStats(deck.id);
+                  const canStudy = dueStats.due > 0 || dueStats.new > 0;
+                  const studyLabel = canStudy
+                    ? `Study (${dueStats.due > 0 ? dueStats.due + ' due' : ''}${dueStats.due > 0 && dueStats.new > 0 ? ' + ' : ''}${dueStats.new > 0 ? dueStats.new + ' new' : ''})`
+                    : 'Study Now';
                   return (
                     <tr key={deck.id}>
                       <td className="deck-name-cell">
@@ -192,6 +197,12 @@ const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0, onViewC
                         }}>
                           {deckCards.length}
                         </span>
+                        {dueStats.due > 0 && (
+                          <span className="due-badge">{dueStats.due} due</span>
+                        )}
+                        {dueStats.due === 0 && dueStats.new > 0 && (
+                          <span className="new-badge">{dueStats.new} new</span>
+                        )}
                       </td>
                       <td className="deck-date">
                         {new Date(deck.createdAt).toLocaleDateString()}
@@ -204,9 +215,9 @@ const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0, onViewC
                           <button
                             className="study-btn-table"
                             onClick={() => handleStudySession(deck)}
-                            disabled={deckCards.length === 0}
+                            disabled={!canStudy}
                           >
-                            Study Now
+                            {studyLabel}
                           </button>
                           <div className="actions-dropdown">
                             <button

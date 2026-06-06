@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getCards, updateCardDifficulty } from '../utils/storage';
+import {
+  getStudyQueue,
+  updateCardDifficulty,
+  updateDeckLastStudied,
+} from '../utils/storage';
 import { ProgressBar, StudyStats } from './ProgressStats';
 
 const StudySession = ({ deck, onComplete }) => {
@@ -7,74 +11,84 @@ const StudySession = ({ deck, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [dueCount, setDueCount] = useState(0);
+  const [newCount, setNewCount] = useState(0);
   const [sessionStats, setSessionStats] = useState({
     total: 0,
     studied: 0,
-    correct: 0
+    again: 0,
+    hard: 0,
+    good: 0,
+    easy: 0,
   });
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
-
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = langCode;
-
-    // Try to find a voice that matches the language
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice => voice.lang.startsWith(langCode.split('-')[0]));
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-
+    const preferredVoice = voices.find((voice) =>
+      voice.lang.startsWith(langCode.split('-')[0])
+    );
+    if (preferredVoice) utterance.voice = preferredVoice;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   };
 
+  // Load study queue: due cards first, then new cards (up to 20)
   useEffect(() => {
-    const deckCards = getCards(deck.id);
-    setCards(deckCards);
-    setSessionStats(prev => ({ ...prev, total: deckCards.length }));
+    const { queue, due, newCards } = getStudyQueue(deck.id, 20);
+    setCards(queue);
+    setDueCount(due.length);
+    setNewCount(newCards.length);
+    setSessionStats((prev) => ({ ...prev, total: queue.length }));
   }, [deck.id]);
 
   const currentCard = cards[currentIndex];
 
-  const handleRating = useCallback((difficulty) => {
-    if (completed) return;
+  const handleRating = useCallback(
+    (rating) => {
+      if (completed || !currentCard) return;
 
-    // Update card difficulty in storage
-    updateCardDifficulty(currentCard.id, difficulty);
+      // Save SM-2 schedule
+      updateCardDifficulty(currentCard.id, rating);
 
-    // Update session stats
-    setSessionStats(prev => ({
-      ...prev,
-      studied: prev.studied + 1,
-      correct: prev.correct + (difficulty !== 'hard' ? 1 : 0)
-    }));
+      // Update session stats
+      setSessionStats((prev) => ({
+        ...prev,
+        studied: prev.studied + 1,
+        [rating]: (prev[rating] || 0) + 1,
+      }));
 
-    // Move to next card or show completion summary
-    if (currentIndex < cards.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setShowAnswer(false);
-    } else {
-      setCompleted(true);
-    }
-  }, [currentCard?.id, currentIndex, cards.length]);
+      // Move to next card or show completion
+      if (currentIndex < cards.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+        setShowAnswer(false);
+      } else {
+        setCompleted(true);
+        updateDeckLastStudied(deck.id);
+      }
+    },
+    [currentCard?.id, currentIndex, cards.length, completed, deck.id]
+  );
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (event) => {
-      if (!showAnswer) return;
-
       switch (event.key) {
         case '1':
+        case 'a':
+          handleRating('again');
+          break;
+        case '2':
         case 'h':
           handleRating('hard');
           break;
-        case '2':
+        case '3':
         case 'g':
           handleRating('good');
           break;
-        case '3':
+        case '4':
         case 'e':
           handleRating('easy');
           break;
@@ -89,10 +103,14 @@ const StudySession = ({ deck, onComplete }) => {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [showAnswer, handleRating]);
+  }, [handleRating]);
+
+  // ── Completion Screen ──────────────────────────────────────────────
 
   if (completed) {
-    const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
+    const total = sessionStats.studied || 1;
+    const correct = sessionStats.good + sessionStats.easy;
+    const accuracy = Math.round((correct / total) * 100);
 
     return (
       <div className="study-session">
@@ -107,21 +125,31 @@ const StudySession = ({ deck, onComplete }) => {
           <h3>🎉 Session Complete!</h3>
           <div className="completion-stats">
             <div className="completion-stat">
-              <span className="completion-stat-value">{sessionStats.total}</span>
-              <span className="completion-stat-label">Total Cards</span>
+              <span className="completion-stat-value">{sessionStats.studied}</span>
+              <span className="completion-stat-label">Studied</span>
             </div>
             <div className="completion-stat">
-              <span className="completion-stat-value">{sessionStats.correct}</span>
+              <span className="completion-stat-value">{correct}</span>
               <span className="completion-stat-label">Correct</span>
-            </div>
-            <div className="completion-stat">
-              <span className="completion-stat-value">{sessionStats.studied - sessionStats.correct}</span>
-              <span className="completion-stat-label">Hard</span>
             </div>
             <div className="completion-stat">
               <span className="completion-stat-value">{accuracy}%</span>
               <span className="completion-stat-label">Accuracy</span>
             </div>
+          </div>
+          <div className="completion-breakdown">
+            <span className="breakdown-item breakdown-again">
+              🔴 {sessionStats.again} Again
+            </span>
+            <span className="breakdown-item breakdown-hard">
+              🟠 {sessionStats.hard} Hard
+            </span>
+            <span className="breakdown-item breakdown-good">
+              🟢 {sessionStats.good} Good
+            </span>
+            <span className="breakdown-item breakdown-easy">
+              🔵 {sessionStats.easy} Easy
+            </span>
           </div>
         </div>
       </div>
@@ -129,41 +157,85 @@ const StudySession = ({ deck, onComplete }) => {
   }
 
   if (!currentCard) {
-    return <div>Loading...</div>;
+    return (
+      <div className="study-session">
+        <div className="study-header">
+          <h2>{deck.name}</h2>
+          <button onClick={onComplete} className="exit-btn">
+            Exit
+          </button>
+        </div>
+        <div className="completion-summary">
+          <h3>✅ All caught up!</h3>
+          <p>No cards due for review. Come back later!</p>
+          <div className="completion-stats">
+            <div className="completion-stat">
+              <span className="completion-stat-value">{dueCount}</span>
+              <span className="completion-stat-label">Due Now</span>
+            </div>
+            <div className="completion-stat">
+              <span className="completion-stat-value">{newCount}</span>
+              <span className="completion-stat-label">New Cards</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
+
+  // ── Active Study ──────────────────────────────────────────────────
+
+  const remaining = cards.length - currentIndex;
+  const studiedSoFar = sessionStats.studied;
 
   return (
     <div className="study-session">
       <div className="study-header">
-        <h2>Studying: {deck.name}</h2>
+        <h2>{deck.name}</h2>
+        <div className="study-progress-info">
+          <span className="progress-text">
+            {remaining} remaining
+            {dueCount > 0 && <span> · {dueCount} due</span>}
+            {newCount > 0 && <span> · {newCount} new</span>}
+          </span>
+        </div>
         <button onClick={onComplete} className="exit-btn">
           Exit Study
         </button>
       </div>
 
-      <div className="study-card" onClick={() => showAnswer || setShowAnswer(true)}>
+      <div
+        className="study-card"
+        onClick={() => showAnswer || setShowAnswer(true)}
+      >
         <div className="card-content">
           <h3>{currentCard.original}</h3>
           <p className="pinyin">{currentCard.pinyin}</p>
 
           {!showAnswer && (
             <div className="click-hint">
-              <button className="show-answer-btn">
-                Click to show answer
-              </button>
+              <button className="show-answer-btn">Click to show answer</button>
             </div>
           )}
 
           {showAnswer && (
             <div className="answer-section">
               <div className="answer-content">
-                <p><strong>Translation:</strong> {currentCard.translation}</p>
+                <p>
+                  <strong>Translation:</strong> {currentCard.translation}
+                </p>
                 <br />
-                <p><strong>Context:</strong> {currentCard.context}</p>
+                <p>
+                  <strong>Context:</strong> {currentCard.context}
+                </p>
                 <br />
-                <p><strong>Grammar:</strong> {currentCard.grammar}</p>
+                <p>
+                  <strong>Grammar:</strong> {currentCard.grammar}
+                </p>
                 <br />
-                <p><strong>Example:</strong> {currentCard.example}</p>
+                <p>
+                  <strong>Example:</strong> {currentCard.example}
+                </p>
               </div>
 
               <div className="audio-section">
@@ -180,65 +252,61 @@ const StudySession = ({ deck, onComplete }) => {
                   className="audio-btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    speak(currentCard.translation, currentCard.targetLang === 'fr' ? 'fr-FR' : 'en-US');
+                    speak(
+                      currentCard.translation,
+                      currentCard.targetLang === 'fr' ? 'fr-FR' : 'en-US'
+                    );
                   }}
                 >
                   🔊 Listen Translation
                 </button>
               </div>
-
-              <div className="rating-section">
-                <h4>How well did you know this?</h4>
-                <div className="rating-buttons">
-                  <button
-                    className="rate-btn hard"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRating('hard');
-                    }}
-                    title="1 or H - Hard"
-                  >
-                    ❌ Hard
-                  </button>
-                  <button
-                    className="rate-btn good"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRating('good');
-                    }}
-                    title="2 or G - Good"
-                  >
-                    ✅ Good
-                  </button>
-                  <button
-                    className="rate-btn easy"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRating('easy');
-                    }}
-                    title="3 or E - Easy"
-                  >
-                    🌟 Easy
-                  </button>
-                </div>
-                <div className="keyboard-hint">
-                  <small>Keyboard shortcuts: 1=Hard, 2=Good, 3=Easy, Space=Show Answer</small>
-                </div>
-              </div>
             </div>
           )}
+
+          {/* ── Rating section — always visible ────────────────── */}
+          <div className="rating-section" onClick={(e) => e.stopPropagation()}>
+            <h4>How well did you know this?</h4>
+            <div className="rating-buttons">
+              <button
+                className="rate-btn again"
+                onClick={() => handleRating('again')}
+                title="1 or A - Again"
+              >
+                🔴 Again
+              </button>
+              <button
+                className="rate-btn hard"
+                onClick={() => handleRating('hard')}
+                title="2 or H - Hard"
+              >
+                🟠 Hard
+              </button>
+              <button
+                className="rate-btn good"
+                onClick={() => handleRating('good')}
+                title="3 or G - Good"
+              >
+                🟢 Good
+              </button>
+              <button
+                className="rate-btn easy"
+                onClick={() => handleRating('easy')}
+                title="4 or E - Easy"
+              >
+                🔵 Easy
+              </button>
+            </div>
+            <div className="keyboard-hint">
+              <small>
+                Keyboard: 1=Again, 2=Hard, 3=Good, 4=Easy, Space=Show Answer
+              </small>
+            </div>
+          </div>
         </div>
       </div>
 
-      <StudyStats
-        stats={{
-          total: cards.length,
-          studied: sessionStats.studied,
-          correct: sessionStats.correct,
-          streak: 0 // TODO: Add streak tracking
-        }}
-      />
-
+      <ProgressBar current={studiedSoFar} total={cards.length} />
     </div>
   );
 };

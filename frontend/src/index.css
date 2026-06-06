@@ -1854,6 +1854,15 @@ header h1 {
   transform: translateY(-1px);
 }
 
+.rate-btn.again {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.rate-btn.again:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
 .rate-btn.hard {
   background: linear-gradient(135deg, var(--danger-color), #e53935);
   box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
@@ -2140,6 +2149,60 @@ header h1 {
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Completion breakdown */
+.completion-breakdown {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.breakdown-item {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.breakdown-again { color: #dc2626; }
+.breakdown-hard { color: #ea580c; }
+.breakdown-good { color: #059669; }
+.breakdown-easy { color: #2563eb; }
+
+/* Study session progress info */
+.study-progress-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.study-progress-info .progress-text {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Due / new badges in deck list */
+.due-badge,
+.new-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.due-badge {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.new-badge {
+  background: #dbeafe;
+  color: #2563eb;
 }
 
 .session-stats {

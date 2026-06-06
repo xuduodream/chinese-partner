@@ -159,6 +159,10 @@ export const saveCard = (card, deckId = null) => {
     createdAt: new Date().toISOString(),
     reviewCount: 0,
     lastReviewed: null,
+    interval: 0,
+    easeFactor: 2.5,
+    repetitions: 0,
+    nextReview: null,
     deckId: deckId || getDefaultDeckId(),
     ...card
   };
@@ -431,7 +435,74 @@ export const getAvailableTargetDecks = (cardId) => {
   return profileDecks.filter(deck => deck.id !== card.deckId);
 };
 
-// Card difficulty tracking for study sessions
+// ── SM-2 Spaced Repetition Algorithm ────────────────────────────────
+
+const computeSM2 = (rating, { interval, easeFactor, repetitions }) => {
+  let newInterval, newEase, newReps;
+
+  switch (rating) {
+    case 'again': // forgot — reset progress
+      newInterval = 1;
+      newEase = Math.max(1.3, easeFactor - 0.2);
+      newReps = 0;
+      break;
+
+    case 'hard': // remembered with difficulty
+      newInterval = Math.max(1, Math.round(interval * 1.2));
+      newEase = Math.max(1.3, easeFactor - 0.15);
+      newReps = repetitions + 1;
+      break;
+
+    case 'good': // standard correct recall
+      if (repetitions === 0) newInterval = 1;
+      else if (repetitions === 1) newInterval = 6;
+      else newInterval = Math.round(interval * easeFactor);
+      newEase = easeFactor + 0.15;
+      newReps = repetitions + 1;
+      break;
+
+    case 'easy': // effortless recall
+      if (repetitions === 0) newInterval = 4;
+      else if (repetitions === 1) newInterval = 10;
+      else newInterval = Math.round(interval * easeFactor * 1.3);
+      newEase = Math.min(easeFactor + 0.3, 5.0);
+      newReps = repetitions + 1;
+      break;
+
+    default:
+      // Fallback for legacy 'hard'/'good'/'easy' values (pre-SM-2 cards)
+      if (rating === 'hard') {
+        newInterval = Math.max(1, Math.round(interval * 1.2));
+        newEase = Math.max(1.3, easeFactor - 0.15);
+        newReps = repetitions + 1;
+      } else if (rating === 'easy') {
+        if (repetitions === 0) newInterval = 4;
+        else if (repetitions === 1) newInterval = 10;
+        else newInterval = Math.round(interval * easeFactor * 1.3);
+        newEase = Math.min(easeFactor + 0.3, 5.0);
+        newReps = repetitions + 1;
+      } else {
+        // treat as 'good'
+        if (repetitions === 0) newInterval = 1;
+        else if (repetitions === 1) newInterval = 6;
+        else newInterval = Math.round(interval * easeFactor);
+        newEase = easeFactor + 0.15;
+        newReps = repetitions + 1;
+      }
+  }
+
+  const nextReviewDate = new Date();
+  nextReviewDate.setDate(nextReviewDate.getDate() + newInterval);
+
+  return {
+    interval: newInterval,
+    easeFactor: Math.round(newEase * 100) / 100,
+    repetitions: newReps,
+    nextReview: nextReviewDate.toISOString(),
+  };
+};
+
+// Card difficulty tracking for study sessions (SM-2 powered)
 export const updateCardDifficulty = (cardId, difficulty) => {
   try {
     const cards = getCards();
@@ -441,11 +512,19 @@ export const updateCardDifficulty = (cardId, difficulty) => {
       return { success: false, message: 'Card not found' };
     }
 
+    const card = cards[cardIndex];
+    const sm2 = computeSM2(difficulty, {
+      interval: card.interval || 0,
+      easeFactor: card.easeFactor || 2.5,
+      repetitions: card.repetitions || 0,
+    });
+
     cards[cardIndex] = {
-      ...cards[cardIndex],
+      ...card,
       difficulty,
       lastReviewed: new Date().toISOString(),
-      reviewCount: (cards[cardIndex].reviewCount || 0) + 1
+      reviewCount: (card.reviewCount || 0) + 1,
+      ...sm2,
     };
 
     localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(cards));
@@ -463,20 +542,69 @@ export const getCardDifficulty = (cardId) => {
 };
 
 export const getDeckStudyStats = (deckId) => {
-  const cards = getDeckCards(deckId);
-  const studied = cards.filter(card => card.reviewCount > 0).length;
-  const difficulties = cards.reduce((acc, card) => {
+  const deckCards = getCards(deckId);
+  const studied = deckCards.filter(card => card.reviewCount > 0).length;
+  const difficulties = deckCards.reduce((acc, card) => {
     const difficulty = card.difficulty || 'new';
     acc[difficulty] = (acc[difficulty] || 0) + 1;
     return acc;
   }, {});
 
   return {
-    totalCards: cards.length,
+    totalCards: deckCards.length,
     studiedCards: studied,
-    newCards: cards.length - studied,
+    newCards: deckCards.length - studied,
     difficultyBreakdown: difficulties
   };
+};
+
+// ── SM-2 Query Functions ────────────────────────────────────────────
+
+// Cards due for review in a deck (nextReview is null/past, or never reviewed)
+export const getCardsDueForReview = (deckId) => {
+  const now = new Date();
+  return getCards(deckId).filter((c) => {
+    if (!c.nextReview) return true; // new card, due immediately
+    if (!c.repetitions && c.repetitions !== 0) return true; // legacy card, no SM-2 data
+    return new Date(c.nextReview) <= now;
+  });
+};
+
+// New cards that have never been reviewed (up to a limit per session)
+export const getNewCards = (deckId, limit = 20) => {
+  return getCards(deckId)
+    .filter((c) => {
+      if (c.nextReview === null) return true;
+      if (c.nextReview === undefined) return true;
+      return false;
+    })
+    .slice(0, limit);
+};
+
+// Combined study queue: due cards first (oldest first), then new cards
+export const getStudyQueue = (deckId, newCardLimit = 20) => {
+  const due = getCardsDueForReview(deckId).sort(
+    (a, b) => new Date(a.nextReview || 0) - new Date(b.nextReview || 0)
+  );
+  const newCards = getNewCards(deckId, newCardLimit);
+  return { due, newCards, queue: [...due, ...newCards] };
+};
+
+// Deck overview stats for the deck list display
+export const getDeckDueStats = (deckId) => {
+  const allCards = getCards(deckId);
+  const dueCards = getCardsDueForReview(deckId);
+  const newCards = getCards(deckId).filter((c) => !c.nextReview);
+  return {
+    total: allCards.length,
+    due: dueCards.length,
+    new: newCards.length,
+  };
+};
+
+// Update deck's lastStudied timestamp
+export const updateDeckLastStudied = (deckId) => {
+  updateDeck(deckId, { lastStudied: new Date().toISOString() });
 };
 
 // Legacy compatibility - alias for existing code
