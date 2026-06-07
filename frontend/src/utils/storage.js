@@ -159,9 +159,12 @@ export const saveCard = (card, deckId = null) => {
     createdAt: new Date().toISOString(),
     reviewCount: 0,
     lastReviewed: null,
+    state: 'learning',
+    stepIndex: 0,
     interval: 0,
     easeFactor: 2.5,
     repetitions: 0,
+    lapseCount: 0,
     nextReview: null,
     deckId: deckId || getDefaultDeckId(),
     ...card
@@ -180,7 +183,25 @@ export const saveCard = (card, deckId = null) => {
 export const getCards = (deckId = null) => {
   const data = localStorage.getItem(FLASHCARDS_KEY);
   const cards = data ? JSON.parse(data) : [];
-  return deckId ? cards.filter(card => card.deckId === deckId) : cards;
+
+  // One-time migration: infer state for pre-Anki cards
+  let migrated = false;
+  const result = cards.map(c => {
+    if (!c.state) {
+      migrated = true;
+      if (c.nextReview === null || c.nextReview === undefined) {
+        return { ...c, state: 'learning', stepIndex: 0, lapseCount: 0 };
+      } else {
+        return { ...c, state: 'review', stepIndex: null, lapseCount: c.lapseCount || 0 };
+      }
+    }
+    return c;
+  });
+  if (migrated) {
+    localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(result));
+  }
+
+  return deckId ? result.filter(card => card.deckId === deckId) : result;
 };
 
 export const deleteCard = (id) => {
@@ -435,82 +456,244 @@ export const getAvailableTargetDecks = (cardId) => {
   return profileDecks.filter(deck => deck.id !== card.deckId);
 };
 
-// ── SM-2 Spaced Repetition Algorithm ────────────────────────────────
+// ── Anki Spaced Repetition Algorithm ─────────────────────────────────
 
-const computeSM2 = (rating, { interval, easeFactor, repetitions }) => {
-  let newInterval, newEase, newReps;
+// Anki default settings
+const LEARNING_STEPS = [1, 10];       // minutes
+const RELEARNING_STEPS = [10];        // minutes
+const GRADUATING_INTERVAL_GOOD = 1;   // days
+const GRADUATING_INTERVAL_EASY = 4;   // days
+const LAPSE_INTERVAL_PCT = 0.5;       // multiplier on lapse
+const MIN_EASE = 1.3;
+const MAX_EASE = 5.0;
+const FUZZ_PCT = 0.05;                // ±5% jitter on intervals ≥ 1 day
+
+// Apply fuzz to intervals >= 1 day (like Anki, prevents card clumping)
+const applyFuzz = (intervalDays) => {
+  if (intervalDays < 1) return intervalDays;
+  const jitter = 1 + (Math.random() - 0.5) * 2 * FUZZ_PCT;
+  return Math.round(intervalDays * jitter);
+};
+
+// Compute a delay in minutes as a Date
+const delayDate = (minutes) => {
+  return new Date(Date.now() + minutes * 60 * 1000);
+};
+
+// Compute an interval in days as a Date
+const intervalDate = (days) => {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+};
+
+// Core Anki scheduling — pure function, no side effects
+const computeAnki = (rating, card) => {
   const now = new Date();
+  let {
+    state = 'learning',
+    stepIndex = 0,
+    interval = 0,
+    easeFactor = 2.5,
+    repetitions = 0,
+    lapseCount = 0,
+  } = card;
 
-  switch (rating) {
-    case 'again': // forgot — repeat this session
-      newInterval = 0;
-      newEase = Math.max(1.3, easeFactor - 0.2);
-      newReps = 0;
-      break;
+  let newState = state;
+  let newStepIndex = stepIndex;
+  let newInterval = interval;
+  let newEase = easeFactor;
+  let newReps = repetitions;
+  let newLapseCount = lapseCount;
+  let nextReview;
 
-    case 'hard': // remembered with difficulty — short pause
-      newInterval = 0;
-      newEase = Math.max(1.3, easeFactor - 0.15);
-      newReps = repetitions + 1;
-      break;
+  switch (state) {
+    // ── LEARNING (new cards going through initial steps) ──────────────
+    case 'learning': {
+      const steps = LEARNING_STEPS;
+      const currentDelay = steps[stepIndex] || steps[steps.length - 1];
 
-    case 'good': // standard correct recall
-      if (repetitions === 0) newInterval = 1;
-      else if (repetitions === 1) newInterval = 6;
-      else newInterval = Math.round(interval * easeFactor);
-      newEase = easeFactor + 0.15;
-      newReps = repetitions + 1;
-      break;
+      switch (rating) {
+        case 'again':
+          newStepIndex = 0;
+          newEase = Math.max(MIN_EASE, easeFactor - 0.20);
+          nextReview = delayDate(steps[0]);
+          newReps = 0;
+          break;
 
-    case 'easy': // effortless recall
-      if (repetitions === 0) newInterval = 4;
-      else if (repetitions === 1) newInterval = 10;
-      else newInterval = Math.round(interval * easeFactor * 1.3);
-      newEase = Math.min(easeFactor + 0.3, 5.0);
-      newReps = repetitions + 1;
+        case 'hard':
+          // Same step, 1.5× delay (like Anki)
+          newStepIndex = stepIndex;
+          newEase = Math.max(MIN_EASE, easeFactor - 0.15);
+          nextReview = delayDate(currentDelay * 1.5);
+          break;
+
+        case 'good':
+          if (stepIndex >= steps.length - 1) {
+            // Last step → graduate to review
+            newState = 'review';
+            newStepIndex = null;
+            newInterval = applyFuzz(GRADUATING_INTERVAL_GOOD);
+            newEase = easeFactor + 0.15;
+            newReps = 0;
+            nextReview = intervalDate(newInterval);
+          } else {
+            // Advance to next step
+            newStepIndex = stepIndex + 1;
+            newEase = easeFactor + 0.15;
+            nextReview = delayDate(steps[stepIndex + 1]);
+          }
+          break;
+
+        case 'easy':
+          // Skip all steps → graduate immediately with 4-day interval
+          newState = 'review';
+          newStepIndex = null;
+          newInterval = applyFuzz(GRADUATING_INTERVAL_EASY);
+          newEase = Math.min(MAX_EASE, easeFactor + 0.30);
+          newReps = 0;
+          nextReview = intervalDate(newInterval);
+          break;
+
+        default:
+          // Fallback — treat as good
+          if (stepIndex >= steps.length - 1) {
+            newState = 'review';
+            newStepIndex = null;
+            newInterval = applyFuzz(GRADUATING_INTERVAL_GOOD);
+            newEase = easeFactor + 0.15;
+            newReps = 0;
+            nextReview = intervalDate(newInterval);
+          } else {
+            newStepIndex = stepIndex + 1;
+            newEase = easeFactor + 0.15;
+            nextReview = delayDate(steps[stepIndex + 1]);
+          }
+      }
       break;
+    }
+
+    // ── REVIEW (graduated cards on full schedule) ─────────────────────
+    case 'review': {
+      switch (rating) {
+        case 'again':
+          // Lapse: enter relearning, reduce interval
+          newState = 'relearning';
+          newStepIndex = 0;
+          newInterval = Math.max(1, Math.round(interval * LAPSE_INTERVAL_PCT));
+          newEase = Math.max(MIN_EASE, easeFactor - 0.20);
+          newLapseCount = lapseCount + 1;
+          nextReview = delayDate(RELEARNING_STEPS[0]);
+          break;
+
+        case 'hard':
+          newInterval = applyFuzz(Math.max(interval * 1.2, interval + 1));
+          newEase = Math.max(MIN_EASE, easeFactor - 0.15);
+          newReps = repetitions + 1;
+          nextReview = intervalDate(newInterval);
+          break;
+
+        case 'good':
+          newInterval = applyFuzz(Math.round(interval * easeFactor));
+          newEase = easeFactor + 0.15;
+          newReps = repetitions + 1;
+          nextReview = intervalDate(newInterval);
+          break;
+
+        case 'easy':
+          newInterval = applyFuzz(Math.round(interval * easeFactor * 1.3));
+          newEase = Math.min(MAX_EASE, easeFactor + 0.30);
+          newReps = repetitions + 1;
+          nextReview = intervalDate(newInterval);
+          break;
+
+        default:
+          // Fallback — treat as good
+          newInterval = applyFuzz(Math.round(interval * easeFactor));
+          newEase = easeFactor + 0.15;
+          newReps = repetitions + 1;
+          nextReview = intervalDate(newInterval);
+      }
+      break;
+    }
+
+    // ── RELEARNING (lapsed cards going through recovery steps) ────────
+    case 'relearning': {
+      const steps = RELEARNING_STEPS;
+      const currentDelay = steps[stepIndex] || steps[steps.length - 1];
+
+      switch (rating) {
+        case 'again':
+          newStepIndex = 0;
+          newEase = Math.max(MIN_EASE, easeFactor - 0.20);
+          nextReview = delayDate(steps[0]);
+          break;
+
+        case 'hard':
+          newStepIndex = stepIndex;
+          newEase = Math.max(MIN_EASE, easeFactor - 0.15);
+          nextReview = delayDate(currentDelay * 1.5);
+          break;
+
+        case 'good':
+          if (stepIndex >= steps.length - 1) {
+            // Last step → re-graduate to review
+            newState = 'review';
+            newStepIndex = null;
+            newInterval = applyFuzz(Math.round(interval * easeFactor));
+            newEase = easeFactor + 0.15;
+            nextReview = intervalDate(newInterval);
+          } else {
+            newStepIndex = stepIndex + 1;
+            newEase = easeFactor + 0.15;
+            nextReview = delayDate(steps[stepIndex + 1]);
+          }
+          break;
+
+        case 'easy':
+          // Skip remaining steps → re-graduate immediately
+          newState = 'review';
+          newStepIndex = null;
+          newInterval = applyFuzz(Math.round(interval * easeFactor * 1.3));
+          newEase = Math.min(MAX_EASE, easeFactor + 0.30);
+          nextReview = intervalDate(newInterval);
+          break;
+
+        default:
+          // Fallback — treat as good
+          if (stepIndex >= steps.length - 1) {
+            newState = 'review';
+            newStepIndex = null;
+            newInterval = applyFuzz(Math.round(interval * easeFactor));
+            newEase = easeFactor + 0.15;
+            nextReview = intervalDate(newInterval);
+          } else {
+            newStepIndex = stepIndex + 1;
+            newEase = easeFactor + 0.15;
+            nextReview = delayDate(steps[stepIndex + 1]);
+          }
+      }
+      break;
+    }
 
     default:
-      // Fallback for legacy 'hard'/'good'/'easy' values (pre-SM-2 cards)
-      if (rating === 'hard') {
-        newInterval = 0;
-        newEase = Math.max(1.3, easeFactor - 0.15);
-        newReps = repetitions + 1;
-      } else if (rating === 'easy') {
-        if (repetitions === 0) newInterval = 4;
-        else if (repetitions === 1) newInterval = 10;
-        else newInterval = Math.round(interval * easeFactor * 1.3);
-        newEase = Math.min(easeFactor + 0.3, 5.0);
-        newReps = repetitions + 1;
-      } else {
-        // treat as 'good'
-        if (repetitions === 0) newInterval = 1;
-        else if (repetitions === 1) newInterval = 6;
-        else newInterval = Math.round(interval * easeFactor);
-        newEase = easeFactor + 0.15;
-        newReps = repetitions + 1;
-      }
-  }
-
-  // Sub-day intervals for Again (immediate) and Hard (5 min)
-  let nextReviewDate;
-  if (rating === 'again') {
-    nextReviewDate = new Date(now.getTime());
-  } else if (rating === 'hard') {
-    nextReviewDate = new Date(now.getTime() + 5 * 60 * 1000);
-  } else {
-    nextReviewDate = new Date(now.getTime() + newInterval * 24 * 60 * 60 * 1000);
+      // Unknown state — treat as learning
+      newState = 'learning';
+      newStepIndex = 0;
+      newEase = Math.max(MIN_EASE, easeFactor - 0.20);
+      nextReview = delayDate(LEARNING_STEPS[0]);
   }
 
   return {
+    state: newState,
+    stepIndex: newStepIndex,
     interval: newInterval,
     easeFactor: Math.round(newEase * 100) / 100,
     repetitions: newReps,
-    nextReview: nextReviewDate.toISOString(),
+    lapseCount: newLapseCount,
+    nextReview: nextReview.toISOString(),
   };
 };
 
-// Card difficulty tracking for study sessions (SM-2 powered)
+// Card difficulty tracking for study sessions (Anki-powered)
 export const updateCardDifficulty = (cardId, difficulty) => {
   try {
     const cards = getCards();
@@ -521,27 +704,38 @@ export const updateCardDifficulty = (cardId, difficulty) => {
     }
 
     const card = cards[cardIndex];
-    const sm2 = computeSM2(difficulty, {
+    const anki = computeAnki(difficulty, {
+      state: card.state,
+      stepIndex: card.stepIndex,
       interval: card.interval || 0,
       easeFactor: card.easeFactor || 2.5,
       repetitions: card.repetitions || 0,
+      lapseCount: card.lapseCount || 0,
     });
 
     cards[cardIndex] = {
       ...card,
       difficulty,
+      state: anki.state,
+      stepIndex: anki.stepIndex,
       lastReviewed: new Date().toISOString(),
       reviewCount: (card.reviewCount || 0) + 1,
-      ...sm2,
+      interval: anki.interval,
+      easeFactor: anki.easeFactor,
+      repetitions: anki.repetitions,
+      lapseCount: anki.lapseCount,
+      nextReview: anki.nextReview,
     };
 
     localStorage.setItem(FLASHCARDS_KEY, JSON.stringify(cards));
     return {
       success: true,
       message: 'Card difficulty updated',
-      nextReview: sm2.nextReview,
-      interval: sm2.interval,
-      easeFactor: sm2.easeFactor,
+      nextReview: anki.nextReview,
+      interval: anki.interval,
+      easeFactor: anki.easeFactor,
+      state: anki.state,
+      lapseCount: anki.lapseCount,
     };
   } catch (error) {
     console.error('Error updating card difficulty:', error);
@@ -572,15 +766,18 @@ export const getDeckStudyStats = (deckId) => {
   };
 };
 
-// ── SM-2 Query Functions ────────────────────────────────────────────
+// ── Anki Query Functions ────────────────────────────────────────────
 
 // Cards due for review in a deck (previously reviewed and past due date)
 export const getCardsDueForReview = (deckId) => {
   const now = new Date();
   return getCards(deckId).filter((c) => {
-    // Must have been reviewed before (has a nextReview date)
     if (!c.nextReview) return false;
-    // Legacy card without SM-2 data — treat as new, not due
+    // Card has Anki state — learning/relearning (sub-day) or review past due
+    if (c.state) {
+      return new Date(c.nextReview) <= now;
+    }
+    // Legacy card without Anki state — check repetitions to exclude old-format
     if (!c.repetitions && c.repetitions !== 0) return false;
     return new Date(c.nextReview) <= now;
   });

@@ -37,7 +37,6 @@ const StudySession = ({ deck, onComplete }) => {
     easy: 0,
   });
   const [lastRating, setLastRating] = useState(null);
-  const [relearning, setRelearning] = useState(false);
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
@@ -67,7 +66,7 @@ const StudySession = ({ deck, onComplete }) => {
     (rating) => {
       if (completed || !currentCard) return;
 
-      // Save SM-2 schedule and capture result
+      // Save Anki schedule and capture result
       const result = updateCardDifficulty(currentCard.id, rating);
 
       // Show next-review feedback
@@ -77,6 +76,8 @@ const StudySession = ({ deck, onComplete }) => {
           nextReview: result.nextReview,
           interval: result.interval,
           easeFactor: result.easeFactor,
+          state: result.state,
+          lapseCount: result.lapseCount,
         });
       }
 
@@ -98,7 +99,6 @@ const StudySession = ({ deck, onComplete }) => {
           setCards(freshDue);
           setCurrentIndex(0);
           setShowAnswer(false);
-          setRelearning(true);
           setLastRating(null);
           setSessionStats((prev) => ({ ...prev, total: prev.total + freshDue.length }));
           return;
@@ -233,12 +233,19 @@ const StudySession = ({ deck, onComplete }) => {
         <h2>{deck.name}</h2>
         <div className="study-progress-info">
           <span className="progress-text">
-            {relearning && <span>🔄 </span>}
             {remaining} remaining
-            {dueCount > 0 && !relearning && <span> · {dueCount} due</span>}
-            {newCount > 0 && !relearning && <span> · {newCount} new</span>}
-            {relearning && <span> relearning</span>}
+            {dueCount > 0 && <span> · {dueCount} due</span>}
+            {newCount > 0 && currentCard?.state === 'learning' && <span> · {newCount} new</span>}
           </span>
+          {currentCard?.state === 'learning' && (
+            <span className="state-badge learning-badge">🔵 Learning</span>
+          )}
+          {currentCard?.state === 'relearning' && (
+            <span className="state-badge relearning-badge">🔄 Relearning</span>
+          )}
+          {currentCard?.state === 'review' && (
+            <span className="state-badge review-badge">✅ Review</span>
+          )}
         </div>
         <button onClick={onComplete} className="exit-btn">
           Exit Study
@@ -254,12 +261,23 @@ const StudySession = ({ deck, onComplete }) => {
             {lastRating.rating === 'good' && '🟢 Good'}
             {lastRating.rating === 'easy' && '🔵 Easy'}
             {' · '}
-            {lastRating.rating === 'again' ? 'repeats this session' :
-             lastRating.rating === 'hard' ? 'in 5 minutes' :
+            {lastRating.state === 'review' && (lastRating.rating === 'good' || lastRating.rating === 'easy')
+              ? 'Graduated! → Review' :
+             lastRating.state === 'review' && lastRating.rating === 'hard'
+              ? formatNextReviewLabel(lastRating.nextReview) :
+             lastRating.rating === 'again' && lastRating.state === 'relearning'
+              ? 'Lapsed → Relearning' :
+             lastRating.rating === 'again'
+              ? 'repeats this step' :
+             lastRating.rating === 'hard'
+              ? '1.5× current step delay' :
              formatNextReviewLabel(lastRating.nextReview)}
           </span>
           <span className="rating-feedback-ease">
             Ease: {lastRating.easeFactor?.toFixed(2)}
+            {lastRating.lapseCount > 0 && (
+              <span className="lapse-count"> · {lastRating.lapseCount} lapses</span>
+            )}
           </span>
         </div>
       )}
@@ -364,33 +382,41 @@ const StudySession = ({ deck, onComplete }) => {
             </div>
 
             <details className="sm2-explainer">
-              <summary>ℹ️ How ratings work</summary>
+              <summary>ℹ️ How ratings work (Anki)</summary>
               <table className="sm2-table">
                 <thead>
                   <tr>
                     <th>Rating</th>
-                    <th>Effect on schedule</th>
+                    <th>Learning (new card)</th>
+                    <th>Review (graduated)</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>🔴 Again</td>
-                    <td>Resets progress. Repeats <strong>this session</strong>. Ease −0.20</td>
+                    <td>Restart at step 1. Ease −0.20</td>
+                    <td>Lapses → relearning. Interval × 0.5. Ease −0.20</td>
                   </tr>
                   <tr>
                     <td>🟠 Hard</td>
-                    <td>Short pause. Reviews in <strong>5 minutes</strong>. Ease −0.15</td>
+                    <td>1.5× current step delay. Ease −0.15</td>
+                    <td>Interval × 1.2. Ease −0.15</td>
                   </tr>
                   <tr>
                     <td>🟢 Good</td>
-                    <td>Standard SM‑2: 1d → 6d → × ease. Ease +0.15</td>
+                    <td>Advance to next step. Last step → graduates (1d). Ease +0.15</td>
+                    <td>Interval × ease. Ease +0.15</td>
                   </tr>
                   <tr>
                     <td>🔵 Easy</td>
-                    <td>Accelerated: 4d → 10d → × ease × 1.3. Ease +0.30</td>
+                    <td>Skip all steps → graduates (4d). Ease +0.30</td>
+                    <td>Interval × ease × 1.3. Ease +0.30</td>
                   </tr>
                 </tbody>
               </table>
+              <p className="sm2-footnote">
+                🔄 Relearning cards (lapsed) follow the same steps as Learning but with their own step timings.
+              </p>
             </details>
           </div>
         </div>
