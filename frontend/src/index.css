@@ -148,7 +148,10 @@ body {
 }
 
 .sidebar-nav.collapsed {
-  width: 60px;
+  width: 0;
+  overflow: hidden;
+  border-right: none;
+  opacity: 0;
 }
 
 .nav-header {
@@ -162,17 +165,11 @@ body {
   font-weight: 600;
   text-align: center;
   letter-spacing: -0.2px;
-  transition: font-size 0.3s ease;
-}
-
-.sidebar-nav.collapsed .nav-header h1 {
-  font-size: 1rem;
 }
 
 .sidebar-toggle {
-  position: absolute;
+  position: fixed;
   top: 50%;
-  right: -12px;
   transform: translateY(-50%);
   width: 24px;
   height: 24px;
@@ -186,12 +183,20 @@ body {
   justify-content: center;
   font-size: 12px;
   z-index: 1001;
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  left: calc(220px - 12px);
+  transition: left 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
 .sidebar-toggle:hover {
   background: var(--bg-muted);
   color: var(--text-body);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.sidebar-toggle.collapsed {
+  left: 4px;
 }
 
 .nav-menu {
@@ -219,11 +224,7 @@ body {
   position: relative;
 }
 
-.sidebar-nav.collapsed .nav-menu button {
-  padding: 10px 8px;
-  justify-content: center;
-  gap: 0;
-}
+
 
 .nav-menu button:hover {
   background: var(--bg-muted);
@@ -275,12 +276,6 @@ body {
   color: var(--text-body);
 }
 
-.sidebar-nav.collapsed .theme-toggle {
-  padding: 10px 8px;
-  justify-content: center;
-  gap: 0;
-  border-top: none;
-}
 
 .nav-icon {
   font-size: 14px;
@@ -292,12 +287,6 @@ body {
 .nav-text {
   flex: 1;
   opacity: 1;
-  transition: opacity 0.3s ease;
-}
-
-.sidebar-nav.collapsed .nav-text {
-  opacity: 0;
-  pointer-events: none;
 }
 
 /* Sleek Main Content Area */
@@ -312,8 +301,8 @@ body {
 }
 
 .main-content.sidebar-collapsed {
-  margin-left: 60px;
-  max-width: calc(100vw - 60px);
+  margin-left: 0;
+  max-width: 100vw;
 }
 
 header {
@@ -4492,6 +4481,10 @@ button.success:hover {
 
 @media (max-width: 767px) {
   .sidebar-nav {
+    display: none;
+  }
+
+  .sidebar-toggle {
     display: none;
   }
 

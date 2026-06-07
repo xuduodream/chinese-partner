@@ -60,15 +60,8 @@ function navigate(path: string) {
       <!-- Left Sidebar Navigation -->
       <nav class="sidebar-nav" :class="{ collapsed: appStore.sidebarCollapsed }">
         <div class="nav-header">
-          <h1>{{ appStore.sidebarCollapsed ? 'MB' : 'MemBoost' }}</h1>
+          <h1>MemBoost</h1>
         </div>
-        <button
-          class="sidebar-toggle"
-          @click="appStore.toggleSidebar()"
-          :title="appStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-        >
-          {{ appStore.sidebarCollapsed ? '→' : '←' }}
-        </button>
 
         <div class="nav-menu">
           <button
@@ -88,6 +81,15 @@ function navigate(path: string) {
           <span class="nav-text">{{ themeLabels[appStore.themeMode] }}</span>
         </button>
       </nav>
+
+      <button
+        class="sidebar-toggle"
+        :class="{ collapsed: appStore.sidebarCollapsed }"
+        @click="appStore.toggleSidebar()"
+        :title="appStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      >
+        {{ appStore.sidebarCollapsed ? '→' : '←' }}
+      </button>
 
       <!-- Main Content Area -->
       <div class="main-content" :class="{ 'sidebar-collapsed': appStore.sidebarCollapsed }">
