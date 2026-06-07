@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project Overview
 
-MemBoost Frontend is a React + Vite application that provides a user interface for uploading Chinese text images, viewing AI-generated explanations, and managing flashcards for language learning.
+MemBoost Frontend is a **Vue 3 + TypeScript + Vite** application that provides a user interface for uploading Chinese text images, viewing AI-generated explanations, managing profiles/decks, and reviewing flashcards for language learning.
 
 ## Development Commands
 
@@ -29,56 +29,71 @@ rm -rf dist/
 ## Code Architecture
 
 ### Frontend Structure
-- `src/App.jsx` - Main application component with routing logic and state management
-- `src/components/ImageUpload.jsx` - Image upload form and API communication
-- `src/components/Flashcard.jsx` - Individual flashcard display with save functionality
-- `src/components/RevisionPage.jsx` - Flashcard review interface with audio playback
-- `src/utils/storage.js` - localStorage utilities for flashcard persistence
-- `src/main.jsx` - React application entry point
-- `src/index.css` - Global styles and responsive design
-- `vite.config.js` - Vite configuration with React plugin
+- `src/App.vue` - Root component with sidebar layout and routing
+- `src/main.ts` - Vue application entry point
+- `src/router/index.ts` - Vue Router configuration
+- `src/pages/` - Page-level route components:
+  - `LandingPage.vue` - Home page
+  - `ImportPage.vue` - Image upload and processing
+  - `RevisionPage.vue` - Flashcard review with audio
+  - `DeckManagerPage.vue` - Profile and deck management
+  - `BackupRestorePage.vue` - Import/export flashcards
+- `src/components/` - Organized by domain:
+  - `card/Flashcard.vue` - Individual flashcard display
+  - `card/CardFormModal.vue` - Edit/create card form
+  - `deck/DeckManager.vue` - Deck CRUD interface
+  - `deck/DeckReviewPage.vue` - Deck-based review session
+  - `deck/StudySession.vue` - Active study session
+  - `modal/DeckMoveModal.vue` - Move cards between decks
+  - `modal/RenameModal.vue` - Rename profiles/decks
+  - `profile/ProfileManager.vue` - Profile CRUD interface
+  - `shared/ImageUpload.vue` - Image upload with progress tracking
+  - `shared/ProgressBar.vue` - Progress indicator component
+  - `shared/StudyStats.vue` - Study statistics display
+- `src/stores/app.ts` - Pinia store for sidebar, theme, profiles, decks
+- `src/stores/saved.ts` - Pinia store for saved flashcards
+- `src/utils/storage.js` - localStorage persistence utilities
+- `src/index.css` - Global styles with design tokens
 
 ### Key Features
-- **Image Upload**: File input with multipart form data submission to backend API
-- **Real-time Progress Tracking**: Live progress updates during image processing via polling
+- **Image Upload**: Two-phase upload with real-time progress tracking via polling
 - **Language Selection**: Toggle between English and French translations
-- **Flashcard Display**: Shows original text, pinyin, translation, context, grammar notes, and examples
+- **Flashcard Display**: Shows original text, pinyin, translation, context, grammar, and examples
+- **Profiles & Decks**: Organize flashcards into profiles (e.g. "Work", "Travel") and named decks
 - **Local Storage**: Persistent flashcard storage using browser localStorage
-- **Audio Playback**: Text-to-speech for Chinese pronunciation
-- **Responsive Design**: Mobile-friendly layout with CSS Grid and Flexbox
+- **Audio Playback**: Text-to-speech for Chinese pronunciation via Web Speech API
+- **Sidebar Navigation**: Collapsible sidebar with theme toggle (light/dark/system)
+- **Responsive Design**: Desktop sidebar + mobile bottom tab bar
 
 ### Component Data Flow
-1. `App.jsx` manages global state (results, target language, revision mode)
-2. `ImageUpload.jsx` handles two-phase upload and real-time progress polling
-3. Backend processes image asynchronously while frontend polls for updates
-4. Results are passed to `Flashcard.jsx` components for display
-5. Users can save cards via `storage.js` utilities
-6. `RevisionPage.jsx` retrieves and displays saved cards for review
+1. `ImportPage.vue` handles image upload and real-time progress polling
+2. Backend processes image asynchronously while frontend polls `/api/job-status/{job_id}`
+3. Results displayed as `Flashcard.vue` components
+4. Users can save cards via Pinia store → `storage.js` persistence
+5. `RevisionPage.vue` retrieves and displays saved cards for review
+6. `DeckManagerPage.vue` manages profiles and deck organization
+7. `ProfileManager.vue` and `DeckManager.vue` handle CRUD within their domains
 
 ### API Integration
-- **Upload Endpoint**: `POST http://localhost:8000/api/start-processing` (returns job ID immediately)
+- **Upload Endpoint**: `POST http://localhost:8000/api/start-processing` (returns job ID)
 - **Progress Endpoint**: `GET http://localhost:8000/api/job-status/{job_id}` (polled every 500ms)
-- **Legacy Endpoint**: `POST http://localhost:8000/api/process-image` (for backward compatibility)
+- **Legacy Endpoint**: `POST http://localhost:8000/api/process-image` (blocking)
 - **Request**: Multipart form data with image file and language parameter
-- **Response**: Array of sentence objects with original text, pinyin, translation, context, grammar, and examples
+- **Response**: Array of sentence objects with original, pinyin, translation, context, grammar, examples
 
-### Storage Schema
-Flashcards are stored in localStorage with the following structure:
-```javascript
-{
-  id: number,
-  createdAt: ISO string,
-  reviewCount: number,
-  lastReviewed: ISO string | null,
-  original: string,
-  pinyin: string,
-  targetLang: string,
-  translation: string,
-  context: string,
-  grammar: string,
-  example: string
-}
-```
+## State Management (Pinia)
+
+### App Store (`stores/app.ts`)
+- `sidebarCollapsed` - Sidebar toggle state
+- `themeMode` - 'light' | 'dark' | 'system'
+- `profiles` - Array of profile objects containing decks
+- Current profile/deck selection for card saving
+- Persisted to localStorage
+
+### Saved Store (`stores/saved.ts`)
+- `cards` - Array of saved flashcard objects
+- Add/delete card operations
+- Persisted to localStorage
 
 ## Configuration
 
@@ -97,13 +112,7 @@ The app uses Vite environment variables for different deployment environments:
 - `VITE_API_TIMEOUT` - API request timeout (ms)
 - `VITE_ENABLE_LOGGING` - Enable/disable console logging
 
-### Development Server
-
-- **Port**: 5173 (configured in vite.config.js)
-- **Hot Reload**: Enabled by default
-
 ### Environment Usage
-
 ```bash
 # Local development (default)
 npm run dev
@@ -119,10 +128,12 @@ npm run build:production
 ```
 
 ### Dependencies
-- **React 18**: Core UI library
-- **Axios**: HTTP client for API requests
+- **Vue 3**: Core UI library with Composition API
+- **Vue Router**: Client-side routing
+- **Pinia**: State management
+- **TypeScript**: Type safety
 - **Vite**: Build tool and development server
-- **@vitejs/plugin-react**: React support for Vite
+- **Axios**: HTTP client for API requests
 
 ## Testing
 
@@ -134,8 +145,8 @@ npm run build
 # Start development server
 npm run dev
 
-# Check for TypeScript errors (if types were added)
-npx tsc --noEmit
+# Check for TypeScript errors
+npx vue-tsc --noEmit
 ```
 
 ### Manual Testing Checklist
@@ -143,50 +154,46 @@ npx tsc --noEmit
 2. **Progress tracking**: Verify real-time updates during processing
 3. Language switching between English and French
 4. Flashcard display and save functionality
-5. Audio playback for Chinese text
-6. localStorage persistence across page reloads
-7. Responsive design on mobile and desktop
-8. Error handling for failed API requests
+5. Profile/deck creation and card organization
+6. Audio playback for Chinese text
+7. Sidebar collapse/expand and theme toggle
+8. localStorage persistence across page reloads
+9. Responsive design on mobile and desktop
+10. Error handling for failed API requests
 
 ### Browser Storage Testing
 ```javascript
-// Test localStorage functionality
-const testCard = {
-  original: '测试',
-  pinyin: 'cè shì',
-  translation: 'test',
-  context: 'testing context',
-  grammar: 'testing grammar',
-  example: 'testing example'
-};
+// Inspect localStorage contents
+console.log(JSON.parse(localStorage.getItem('memboost_app') || '{}'))
+console.log(JSON.parse(localStorage.getItem('memboost_cards') || '[]'))
 
-// Save card
-saveCard(testCard);
-
-// Retrieve cards
-const cards = getCards();
-console.log(cards);
-
-// Delete card
-deleteCard(cards[0]?.id);
+// Clear all storage
+localStorage.removeItem('memboost_app')
+localStorage.removeItem('memboost_cards')
 ```
 
 ## Common Development Tasks
 
 ### Adding New Language Support
-1. Update language selector buttons in `App.jsx`
-2. Add new language option to targetLang state
-3. Update audio language codes in `Flashcard.jsx` and `RevisionPage.jsx`
+1. Update language selector in `ImportPage.vue`
+2. Add new language option to the backend request parameter
+3. Update audio language codes in `Flashcard.vue` and `RevisionPage.vue`
+
+### Adding a New Page/Route
+1. Create page component in `src/pages/`
+2. Add route in `src/router/index.ts`
+3. Add nav item in `src/App.vue` (sidebar + mobile tab bar)
 
 ### Extending Flashcard Features
-1. Modify flashcard data structure in `App.jsx` handleSaveCard function
-2. Update storage schema in `storage.js`
-3. Extend flashcard display components
+1. Modify card schema in `src/utils/storage.js`
+2. Update Pinia store in `src/stores/saved.ts`
+3. Update `Flashcard.vue` display component
+4. Update `CardFormModal.vue` for editing
 
 ### Styling Modifications
-1. Update global styles in `index.css`
+1. Update design tokens in `src/index.css` (`:root` variables)
 2. Add component-specific CSS classes
-3. Test responsive breakpoints
+3. Test responsive breakpoints (mobile < 768px)
 
 ## Deployment
 
@@ -221,11 +228,8 @@ npm run preview
 # Check if development server is running
 curl http://localhost:5173
 
-# Inspect localStorage contents
-console.log(JSON.parse(localStorage.getItem('chinese_flashcards') || '[]'))
-
-# Clear flashcard storage
-localStorage.removeItem('chinese_flashcards')
+# Check API connectivity
+curl http://localhost:8000/api/health
 
 # Check build output
 ls -la dist/

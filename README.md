@@ -1,79 +1,142 @@
-Here is a summary of our brainstorming in English:
+# MemBoost 🧠
 
----
+A web application for learning Chinese through image-based flashcards. Extract Chinese text from images, get AI-powered explanations with pinyin, and practice with audio-enhanced flashcards.
 
-## 🎯 Goal
-Create a personal application to learn and memorize Chinese phrases from **video clips, audio recordings, text, or photos**. The core idea is to anchor each phrase in its **authentic context** (image, sound, video) to enhance memory retention.
+## Features
 
----
+- **OCR Text Extraction** — Upload images containing Chinese text, automatically extracted via PaddleOCR
+- **AI Explanations** — Each sentence gets translation, pinyin, grammar notes, context, and examples via LLM
+- **Real-time Progress** — Live progress tracking during image processing (OCR → segmentation → AI → pinyin)
+- **Audio Playback** — Listen to Chinese pronunciation via Web Speech API
+- **Multi-language Support** — Explanations in English or French
+- **Profile & Deck System** — Organize flashcards into named decks within profiles for different study contexts
+- **Spaced Review** — Review saved flashcards with audio and tracking
+- **Dark Mode** — Light, dark, and system theme options
 
-## 🧱 Chosen Architecture
-- **MVP as a web app** (not native) – faster to develop, works on mobile via browser, no app store approval needed.
-- **Backend**: Python + FastAPI – integrates OCR (PaddleOCR), sentence segmentation, AI explanation (LongCat), pinyin generation (pypinyin), and real-time progress tracking.
-- **Frontend**: React + Vite – simple UI, localStorage for flashcards, real-time progress polling, communicates with backend via REST API.
+## Tech Stack
 
----
+### Backend
+- **Python** + **FastAPI** — REST API server
+- **PaddleOCR** — Chinese text extraction from images
+- **pypinyin** — Pinyin generation
+- **LongCat API** — AI-powered sentence explanations
 
-## 📦 First Functional Brick (MVP)
-1. **Input**: user imports a **photo** containing Chinese text (or takes a photo via browser).
-2. **Two-phase processing**:
-   - **Phase 1**: Upload image, receive job ID immediately
-   - **Phase 2**: Real-time progress tracking via polling (every 500ms)
-3. **Backend processing** with live progress updates:
-   - OCR → raw text (15-30%)
-   - Sentence segmentation (30-50%)
-   - AI explanation for each sentence (50-85%)
-   - Pinyin generation (85-95%)
-   - Completion (100%)
-4. **Frontend display**: Real-time progress indicators with step-by-step feedback
-5. **Save**: user can add each card to a personal collection stored in `localStorage`
-6. **Review**:
-   - Front of card: Chinese + pinyin
-   - Click to see translation, context, grammar, example
-   - **Audio** via Web Speech API – buttons to listen to Chinese phrase (Mandarin) and translation (French/English)
+### Frontend
+- **Vue 3** + **TypeScript** — UI framework
+- **Vite** — Build tool
+- **Pinia** — State management
+- **Vue Router** — Client-side routing
+- **localStorage** — Flashcard persistence (no database required)
 
----
+## Getting Started
 
-## 🌍 Multi‑language Support (French / English + extensible)
-- User selects their **target language** (`fr` or `en`) before importing an image.
-- This language is sent to the backend and injected into the **AI prompt** (response generated in chosen language).
-- Language is also stored with each flashcard.
-- Easy to extend to other languages (Spanish, German, etc.) by adding a new conditional block.
+### Prerequisites
+- Python 3.10+ with `uv`
+- Node.js 18+
 
----
+### Backend Setup
 
-## 🔊 Enhanced Review Features
-- **Pinyin** systematically generated for each phrase (backend).
-- **Text‑to‑speech** (Web Speech API):
-  - Chinese (zh-CN)
-  - French (fr-FR) or English (en-US) depending on user's language
-- No audio storage – generated on the fly by the browser.
+```bash
+cd backend
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+cp .env.example .env  # Add your LLM API key
+uv run python app.py
+```
 
----
+The API server runs at `http://localhost:8000`.
 
-## 🔮 Future Evolutions (post‑MVP)
-- Support for **audio alone** (transcription via Whisper)
-- Support for **video** (subtitle extraction + visual clips)
-- **Spaced repetition** algorithm (Leitner / SM‑2)
-- Export to Anki or PDF
-- Authentication and cloud sync
-- Convert to PWA or package with Capacitor for native iOS/Android
+### Frontend Setup
 
----
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## 💡 Key Takeaways
-- Visual/audio context is central to memorization – we keep the link to original media for future versions.
-- The MVP focuses on **photos** (simplest to implement) with a complete pipeline: OCR → segmentation → AI explanation → pinyin → audio review.
-- **Real-time progress tracking** provides transparency during processing, eliminating misleading completion states.
-- **Web‑first** approach allows rapid testing and iteration without app store constraints.
+The dev server runs at `http://localhost:5173`.
 
----
+### Mobile Testing
 
-## 📍 Where Are Flashcards Stored?
-Flashcards are stored **locally in your browser** using `localStorage` (a built‑in key‑value database).  
-- No server needed for MVP – avoids user accounts and database complexity.  
-- Cards are tied to that specific browser and device (export/import can be added later).
+To test on a mobile device on the same network:
 
----
+```bash
+cd frontend
+npm run dev:mobile
+```
 
-**Next concrete step**: code the backend (FastAPI + OCR + segmentation + DeepSeek call + pinyin) and the frontend (image upload + language selector + audio review). Let me know if you want me to detail any specific file or feature.
+This uses the `VITE_API_BASE_URL` from `.env.development` (default: `http://192.168.1.254:8000`).
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/start-processing` | Upload image, returns job ID immediately |
+| `GET` | `/api/job-status/{job_id}` | Poll for real-time processing progress |
+| `POST` | `/api/process-image` | Legacy endpoint (blocking) |
+| `GET` | `/api/health` | Health check |
+
+### Processing Pipeline
+
+1. OCR text extraction (15–30%)
+2. Sentence segmentation (30–50%)
+3. AI explanation generation (50–85%)
+4. Pinyin generation (85–95%)
+5. Complete (100%)
+
+## Project Structure
+
+```
+chinese-partner/
+├── backend/
+│   ├── app.py              # FastAPI app, routes, CORS
+│   ├── ocr.py              # PaddleOCR integration
+│   ├── segment.py          # Chinese sentence segmentation
+│   ├── pinyin_helper.py    # Pinyin generation
+│   ├── ai_explain.py       # LLM API integration
+│   └── requirements.txt
+│
+└── frontend/
+    ├── src/
+    │   ├── App.vue          # Root component with sidebar layout
+    │   ├── main.ts          # Entry point
+    │   ├── router/          # Vue Router config
+    │   ├── stores/          # Pinia stores (app state, flashcards)
+    │   ├── components/      # Reusable components
+    │   ├── views/           # Page components
+    │   ├── utils/           # Storage and utility functions
+    │   └── index.css        # Global styles
+    ├── package.json
+    └── vite.config.ts
+```
+
+## Flashcards
+
+Cards are stored in browser `localStorage` — no account or database needed. Each card contains:
+
+| Field | Description |
+|-------|-------------|
+| `original` | Chinese text |
+| `pinyin` | Pinyin romanization |
+| `translation` | Translated text (EN/FR) |
+| `context` | Contextual usage note |
+| `grammar` | Grammar explanation |
+| `example` | Example sentence |
+
+Cards are organized into **Profiles** (e.g., "Work", "Travel") and **Decks** (named collections within a profile).
+
+## Deployment
+
+```bash
+# Build frontend for production
+cd frontend && npm run build
+# Output: frontend/dist/
+
+# Run backend on custom port
+cd backend && uvicorn app:app --host 0.0.0.0 --port 8000
+```
+
+## License
+
+MIT
