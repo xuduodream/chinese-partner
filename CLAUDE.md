@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 MemBoost is a web application that extracts Chinese text from images, explains each sentence with AI, and creates audio-enhanced flashcards for review. The app follows a client-server architecture with:
 
 - **Backend**: Python + FastAPI for OCR, text processing, and AI explanations
-- **Frontend**: React + Vite for the user interface
+- **Frontend**: Vue 3 + TypeScript + Vite for the user interface
 - **Storage**: Browser localStorage for flashcards (no database required)
 
 ## Development Commands
@@ -59,12 +59,19 @@ cp .env.example .env  # Add your LongCat API key to .env
 - `backend/requirements.txt` - Python dependencies (FastAPI, PaddleOCR, pypinyin, etc.)
 
 ### Frontend Structure
-- `frontend/src/App.jsx` - Main application component with routing logic
-- `frontend/src/components/ImageUpload.jsx` - Image upload and processing
-- `frontend/src/components/Flashcard.jsx` - Individual flashcard display
-- `frontend/src/components/RevisionPage.jsx` - Flashcard review interface
-- `frontend/src/utils/storage.js` - localStorage utilities for flashcards
-- `frontend/src/index.css` - Responsive styling
+- `frontend/src/App.vue` - Root component with sidebar layout and routing
+- `frontend/src/main.ts` - Vue application entry point
+- `frontend/src/router/index.ts` - Vue Router configuration
+- `frontend/src/pages/` - Page-level route components (Landing, Import, Review, Manager, Backup)
+- `frontend/src/components/` - Reusable Vue components organized by domain:
+  - `card/` - Flashcard and CardFormModal components
+  - `deck/` - DeckManager, DeckReviewPage, StudySession components
+  - `modal/` - DeckMoveModal, RenameModal components
+  - `profile/` - ProfileManager component
+  - `shared/` - ImageUpload, ProgressBar, StudyStats components
+- `frontend/src/stores/` - Pinia stores (`app.ts` for sidebar/theme, `saved.ts` for flashcards)
+- `frontend/src/utils/storage.js` - localStorage utilities for flashcards, profiles, and decks
+- `frontend/src/index.css` - Responsive styling with design tokens
 
 ### Key API Endpoints
 - `POST /api/start-processing` - Upload image and start processing (returns job ID immediately)
@@ -104,12 +111,29 @@ backend/
 
 frontend/
 ├── src/
-│   ├── App.jsx           # Main component
-│   ├── components/       # React components
-│   ├── utils/storage.js  # LocalStorage utilities
-│   └── index.css         # Styling
-├── package.json          # Frontend dependencies
-└── vite.config.js        # Vite configuration
+│   ├── App.vue            # Root component
+│   ├── main.ts            # Entry point
+│   ├── router/index.ts    # Route definitions
+│   ├── pages/             # Page components (5 pages)
+│   │   ├── LandingPage.vue
+│   │   ├── ImportPage.vue
+│   │   ├── RevisionPage.vue
+│   │   ├── DeckManagerPage.vue
+│   │   └── BackupRestorePage.vue
+│   ├── components/        # Vue components by domain
+│   │   ├── card/          # Flashcard, CardFormModal
+│   │   ├── deck/          # DeckManager, DeckReviewPage, StudySession
+│   │   ├── modal/         # DeckMoveModal, RenameModal
+│   │   ├── profile/       # ProfileManager
+│   │   └── shared/        # ImageUpload, ProgressBar, StudyStats
+│   ├── stores/            # Pinia stores
+│   │   ├── app.ts         # Sidebar, theme, profile/deck state
+│   │   └── saved.ts       # Saved flashcards
+│   ├── utils/storage.js   # LocalStorage utilities
+│   └── index.css          # Global styling
+├── package.json
+├── vite.config.ts
+└── tsconfig.json
 ```
 
 ## Testing
@@ -147,7 +171,7 @@ npm run build  # Verify build succeeds
 
 ### Adding New Language Support
 1. Update `ai_explain.py` to add new language prompts
-2. Update `App.jsx` language selector
+2. Update `App.vue` language selector
 3. Update audio language codes in flashcard components
 
 ### Extending AI Features
