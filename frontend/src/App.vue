@@ -28,6 +28,27 @@ const navItems = [
   { path: '/backup', name: 'backup', icon: '💾', label: 'Backup' },
 ]
 
+const themeModes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
+
+const themeIcons: Record<string, string> = {
+  light: '☀️',
+  dark: '🌙',
+  system: '🖥️',
+}
+
+const themeLabels: Record<string, string> = {
+  light: 'Light',
+  dark: 'Dark',
+  system: 'System',
+}
+
+function cycleTheme() {
+  const modes = themeModes
+  const idx = modes.indexOf(appStore.themeMode)
+  const next = modes[(idx + 1) % modes.length]
+  appStore.setThemeMode(next)
+}
+
 function navigate(path: string) {
   router.push(path)
 }
@@ -60,12 +81,35 @@ function navigate(path: string) {
             <span class="nav-text">{{ item.label }}</span>
           </button>
         </div>
+
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" @click="cycleTheme" :title="'Theme: ' + themeLabels[appStore.themeMode]">
+          <span class="nav-icon">{{ themeIcons[appStore.themeMode] }}</span>
+          <span class="nav-text">{{ themeLabels[appStore.themeMode] }}</span>
+        </button>
       </nav>
 
       <!-- Main Content Area -->
       <div class="main-content" :class="{ 'sidebar-collapsed': appStore.sidebarCollapsed }">
         <router-view />
       </div>
+
+      <!-- Mobile Bottom Tab Bar -->
+      <nav class="mobile-tab-bar">
+        <router-link
+          v-for="item in navItems"
+          :key="item.name"
+          :to="item.path"
+          class="tab-btn"
+        >
+          <span class="tab-icon">{{ item.icon }}</span>
+          <span class="tab-label">{{ item.label }}</span>
+        </router-link>
+        <button class="tab-btn theme-tab-btn" @click="cycleTheme" title="Toggle theme">
+          <span class="tab-icon">{{ themeIcons[appStore.themeMode] }}</span>
+          <span class="tab-label">{{ themeLabels[appStore.themeMode] }}</span>
+        </button>
+      </nav>
     </div>
 
     <!-- Migration Dialog -->
