@@ -662,7 +662,7 @@ function App() {
   return (
     <div className="app">
       <header>
-        <h1>🇨🇳 Chinese Partner</h1>
+        <h1>🇨🇳 MemBoost</h1>
         <div className="lang-selector">
           <button 
             className={targetLang === 'en' ? 'active' : ''} 
@@ -1039,7 +1039,7 @@ npm run dev
 ### Task 4.3: Environment setup instructions
 Create `README.md`:
 ```markdown
-# Chinese Partner
+# MemBoost
 
 ## Setup
 

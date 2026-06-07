@@ -50,31 +50,38 @@ const Flashcard = ({ card, onSave, currentDeck, onDeckSelect }) => {
       <div className="front">
         <h3>{card.original}</h3>
         <p className="pinyin">{card.pinyin}</p>
-        {!showBack && <button>Click to see explanation →</button>}
+        {!showBack && (
+          <button className="action-pill show-details" onClick={(e) => { e.stopPropagation(); setShowBack(true); }}>
+            👁️ Show Explanation
+          </button>
+        )}
       </div>
 
       {showBack && (
         <div className="back">
           <p><strong>Translation:</strong> {card.translation}</p>
+          <br />
           <p><strong>Context:</strong> {card.context}</p>
+          <br />
           <p><strong>Grammar:</strong> {card.grammar}</p>
+          <br />
           <p><strong>Example:</strong> {card.example}</p>
 
           <div className="audio-buttons">
-            <button onClick={(e) => { e.stopPropagation(); speak(card.original, 'zh-CN'); }}>
-              🔊 Listen Chinese
+            <button className="audio-btn" onClick={(e) => { e.stopPropagation(); speak(card.original, 'zh-CN'); }}>
+              🔊 Chinese
             </button>
-            <button onClick={(e) => { e.stopPropagation(); speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US'); }}>
-              🔊 Listen Translation
+            <button className="audio-btn" onClick={(e) => { e.stopPropagation(); speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US'); }}>
+              🔊 Translation
             </button>
           </div>
 
           <button
-            className="save-btn"
+            className={`action-pill ${saved ? 'save' : 'save'}`}
             onClick={(e) => { e.stopPropagation(); handleSave(); }}
             disabled={saved}
           >
-            {saved ? '✓ Saved!' : `Save to ${currentDeck ? currentDeck.name : 'Deck'}`}
+            {saved ? '✅ Saved!' : `💾 Save to ${currentDeck ? currentDeck.name : 'Deck'}`}
           </button>
 
           {/* Deck Selection Modal */}

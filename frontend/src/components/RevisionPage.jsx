@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getCards, deleteCard, getDecks, renameDeck, validateDeckName } from '../utils/storage';
+import { getCards, deleteCard, getDecks, renameDeck, validateDeckName, deleteDeck, getDeckDueStats } from '../utils/storage';
 import DeckReviewPage from './DeckReviewPage';
+import StudySession from './StudySession';
 import DeckMoveModal from './DeckMoveModal';
 import RenameModal from './RenameModal';
 
-const RevisionPage = ({ currentProfile, currentDeck }) => {
-  const [view, setView] = useState('deck-list'); // 'deck-list' or 'deck-review'
+const RevisionPage = ({ currentProfile, currentDeck, refreshTrigger = 0, onViewChange }) => {
+  const [view, setView] = useState('deck-list'); // 'deck-list', 'deck-review', or 'study-session'
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [decks, setDecks] = useState([]);
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -14,10 +15,20 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
   const [deckToRename, setDeckToRename] = useState(null);
 
   useEffect(() => {
+    if (onViewChange) onViewChange(view);
+  }, [view]);
+
+  useEffect(() => {
     if (currentProfile) {
       loadDecks();
     }
   }, [currentProfile]);
+
+  useEffect(() => {
+    if (currentProfile) {
+      loadDecks();
+    }
+  }, [refreshTrigger, currentProfile]);
 
   const loadDecks = () => {
     if (!currentProfile) return;
@@ -30,7 +41,17 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
     setView('deck-review');
   };
 
+  const handleStudySession = (deck) => {
+    setSelectedDeck(deck);
+    setView('study-session');
+  };
+
   const handleBackToDeckList = () => {
+    setView('deck-list');
+    setSelectedDeck(null);
+  };
+
+  const handleStudyComplete = () => {
     setView('deck-list');
     setSelectedDeck(null);
   };
@@ -47,6 +68,22 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
     }
   };
 
+  const handleDeleteDeck = (deck) => {
+    const deckCards = getCards(deck.id);
+    if (deckCards.length > 0) {
+      if (!window.confirm(`Are you sure you want to delete the deck "${deck.name}"? This will also delete ${deckCards.length} cards in this deck. This action cannot be undone.`)) {
+        return;
+      }
+    } else {
+      if (!window.confirm(`Are you sure you want to delete the deck "${deck.name}"? This action cannot be undone.`)) {
+        return;
+      }
+    }
+
+    deleteDeck(deck.id);
+    loadDecks();
+  };
+
   const handleRenameDeck = (deck) => {
     setDeckToRename(deck);
     setShowRenameModal(true);
@@ -58,6 +95,21 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
       loadDecks();
     }
   };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.actions-dropdown')) {
+        const dropdowns = document.querySelectorAll('.actions-menu');
+        dropdowns.forEach(dropdown => {
+          dropdown.style.display = 'none';
+        });
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const speak = (text, langCode) => {
     if (!window.speechSynthesis) return;
@@ -76,20 +128,27 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
     window.speechSynthesis.speak(utterance);
   };
 
+
   if (view === 'deck-review') {
     return <DeckReviewPage deck={selectedDeck} onBack={handleBackToDeckList} />;
+  }
+
+  if (view === 'study-session') {
+    return <StudySession deck={selectedDeck} onComplete={handleStudyComplete} />;
   }
 
   return (
     <div className="revision-page">
       <div className="deck-list-view">
         <div className="revision-header">
-          <h2>📚 Study Decks</h2>
-          {currentProfile && (
-            <div className="profile-info">
-              Profile: <strong>{currentProfile.name}</strong>
-            </div>
-          )}
+          <h2>
+            📚 Study Decks
+            {currentProfile && (
+              <span className="profile-info">
+                • Profile: <strong>{currentProfile.name}</strong>
+              </span>
+            )}
+          </h2>
         </div>
 
         {!currentProfile ? (
@@ -102,56 +161,116 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
             <p>Create your first deck to start organizing your flashcards!</p>
           </div>
         ) : (
-          <div className="decks-grid">
-            {decks.map(deck => {
-              const deckCards = getCards(deck.id);
-              return (
-                <div
-                  key={deck.id}
-                  className="deck-card"
-                  onClick={() => handleDeckSelect(deck)}
-                >
-                  <div className="deck-card-header">
-                    <h3>{deck.name}</h3>
-                    <div className="deck-actions">
-                      <span className="card-count">{deckCards.length} cards</span>
-                      <button
-                        className="rename-deck-btn"
-                        onClick={(e) => {
+          <div className="decks-table-container">
+            <table className="decks-table">
+              <thead>
+                <tr>
+                  <th>Deck Name</th>
+                  <th>Cards</th>
+                  <th>Created</th>
+                  <th>Last Studied</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {decks.map(deck => {
+                  const deckCards = getCards(deck.id);
+                  const dueStats = getDeckDueStats(deck.id);
+                  const canStudy = dueStats.due > 0 || dueStats.new > 0;
+                  const studyLabel = canStudy
+                    ? `Study (${dueStats.due > 0 ? dueStats.due + ' due' : ''}${dueStats.due > 0 && dueStats.new > 0 ? ' + ' : ''}${dueStats.new > 0 ? dueStats.new + ' new' : ''})`
+                    : 'Study Now';
+                  return (
+                    <tr key={deck.id}>
+                      <td className="deck-name-cell">
+                        <div>
+                          <div className="deck-name">{deck.name}</div>
+                          {deck.description && (
+                            <div className="deck-description">{deck.description}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="deck-cards">
+                        <span className="card-count" onClick={(e) => {
                           e.stopPropagation();
-                          handleRenameDeck(deck);
-                        }}
-                        title="Rename deck"
-                      >
-                        ✏️ Rename
-                      </button>
-                      <button
-                        className="move-deck-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveDeck(deck);
-                        }}
-                        title="Move deck to another profile"
-                      >
-                        📁 Move
-                      </button>
-                    </div>
-                  </div>
-                  {deck.description && (
-                    <p className="deck-description">{deck.description}</p>
-                  )}
-                  <div className="deck-meta">
-                    <span>Created: {new Date(deck.createdAt).toLocaleDateString()}</span>
-                    {deck.lastStudied && (
-                      <span>• Last studied: {new Date(deck.lastStudied).toLocaleDateString()}</span>
-                    )}
-                  </div>
-                  <div className="study-now-btn">
-                    Study Now →
-                  </div>
-                </div>
-              );
-            })}
+                          handleDeckSelect(deck);
+                        }}>
+                          {deckCards.length}
+                        </span>
+                        {dueStats.due > 0 && (
+                          <span className="due-badge">{dueStats.due} due</span>
+                        )}
+                        {dueStats.due === 0 && dueStats.new > 0 && (
+                          <span className="new-badge">{dueStats.new} new</span>
+                        )}
+                      </td>
+                      <td className="deck-date">
+                        {new Date(deck.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="deck-date">
+                        {deck.lastStudied ? new Date(deck.lastStudied).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="deck-actions-cell">
+                        <div className="deck-row-actions">
+                          <button
+                            className="study-btn-table"
+                            onClick={() => handleStudySession(deck)}
+                            disabled={!canStudy}
+                          >
+                            {studyLabel}
+                          </button>
+                          <div className="actions-dropdown">
+                            <button
+                              className="actions-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const dropdown = e.currentTarget.nextElementSibling;
+                                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                              }}
+                              title="Deck actions"
+                            >
+                              ⋮
+                            </button>
+                            <div className="actions-menu">
+                              <button
+                                className="action-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRenameDeck(deck);
+                                  e.currentTarget.closest('.actions-menu').style.display = 'none';
+                                }}
+                              >
+                                ✏️ Rename
+                              </button>
+                              <button
+                                className="action-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveDeck(deck);
+                                  e.currentTarget.closest('.actions-menu').style.display = 'none';
+                                }}
+                              >
+                                📁 Move
+                              </button>
+                              <button
+                                className="action-item delete-action"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteDeck(deck);
+                                  e.currentTarget.closest('.actions-menu').style.display = 'none';
+                                }}
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
@@ -193,6 +312,6 @@ const RevisionPage = ({ currentProfile, currentDeck }) => {
       )}
     </div>
   );
-};
+}
 
 export default RevisionPage;

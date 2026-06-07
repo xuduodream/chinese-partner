@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project Overview
 
-Chinese Partner Backend is a Python + FastAPI application that handles Chinese text extraction from images, sentence processing, AI explanations, and real-time progress tracking. The backend uses a job-based system for asynchronous processing with progress polling.
+MemBoost Backend is a Python + FastAPI application that handles Chinese text extraction from images, sentence processing, AI explanations, and real-time progress tracking. The backend uses a job-based system for asynchronous processing with progress polling.
 
 ## Development Commands
 
@@ -67,7 +67,7 @@ cp .env.example .env  # Add your LongCat API key to .env
 ## Configuration Requirements
 
 ### Environment Variables
-- `LONGCHAT_API_KEY` - Required API key from LongCat platform
+- `LLM_API_KEY` - Required API key for LLM provider (e.g., LongCat)
 
 ### File Structure Requirements
 ```
