@@ -21,6 +21,7 @@ import DeckReviewPage from '../components/deck/DeckReviewPage.vue'
 import StudySession from '../components/deck/StudySession.vue'
 import DeckMoveModal from '../components/modal/DeckMoveModal.vue'
 import RenameModal from '../components/modal/RenameModal.vue'
+import { BookOpen, MoreHorizontal, Pencil, Trash2, FolderOpen } from '@lucide/vue'
 
 const appStore = useAppStore()
 
@@ -196,11 +197,11 @@ function handleNewDeck() {
 
               <div v-if="appStore.currentProfile" class="profile-actions-menu">
                 <button class="dropdown-toggle" title="Profile actions" @click="($event.currentTarget as HTMLElement).nextElementSibling!.classList.toggle('visible')">
-                  ⋮
+                  <MoreHorizontal :size="16" />
                 </button>
                 <div class="dropdown-content">
-                  <button @click="handleRenameProfile">✏️ Rename Profile</button>
-                  <button class="delete-action" @click="handleDeleteProfileAction">🗑️ Delete Profile</button>
+                  <button @click="handleRenameProfile"><Pencil :size="14" style="vertical-align: middle; margin-right: 4px;" /> Rename Profile</button>
+                  <button class="delete-action" @click="handleDeleteProfileAction"><Trash2 :size="14" style="vertical-align: middle; margin-right: 4px;" /> Delete Profile</button>
                 </div>
               </div>
             </div>
@@ -216,7 +217,7 @@ function handleNewDeck() {
 
       <div class="revision-header">
         <h2>
-          📚 Study Decks
+          <BookOpen :size="24" style="display: inline; vertical-align: middle; margin-right: 4px;" /> Study Decks
           <span v-if="appStore.currentProfile" class="profile-info">
             • Profile: <strong>{{ appStore.currentProfile.name }}</strong>
           </span>
@@ -281,12 +282,12 @@ function handleNewDeck() {
                       @click="($event.currentTarget as HTMLElement).nextElementSibling!.classList.toggle('visible')"
                       title="Deck actions"
                     >
-                      ⋮
+                      <MoreHorizontal :size="16" />
                     </button>
                     <div class="actions-menu">
-                      <button class="action-item" @click="handleRenameDeck(deck)">✏️ Rename</button>
-                      <button class="action-item" @click="handleMoveDeck(deck)">📁 Move</button>
-                      <button class="action-item delete-action" @click="handleDeleteDeck(deck)">🗑️ Delete</button>
+                      <button class="action-item" @click="handleRenameDeck(deck)"><Pencil :size="14" style="vertical-align: middle; margin-right: 4px;" /> Rename</button>
+                      <button class="action-item" @click="handleMoveDeck(deck)"><FolderOpen :size="14" style="vertical-align: middle; margin-right: 4px;" /> Move</button>
+                      <button class="action-item delete-action" @click="handleDeleteDeck(deck)"><Trash2 :size="14" style="vertical-align: middle; margin-right: 4px;" /> Delete</button>
                     </div>
                   </div>
                 </div>

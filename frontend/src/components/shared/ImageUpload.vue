@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue'
 import axios from 'axios'
+import { Upload, Search, FileText, Bot, Languages, Check } from '@lucide/vue'
 
 const props = defineProps<{
   onResults: (results: any[]) => void
@@ -148,7 +149,7 @@ onUnmounted(() => {
             active: isStepActive('upload'),
           }"
         >
-          <span class="step-icon">📤</span>
+          <span class="step-icon"><Upload :size="20" /></span>
           <span class="step-text">Upload</span>
         </div>
         <div
@@ -158,7 +159,7 @@ onUnmounted(() => {
             active: currentStep === 'ocr' || currentStep === 'ocr_complete',
           }"
         >
-          <span class="step-icon">🔍</span>
+          <span class="step-icon"><Search :size="20" /></span>
           <span class="step-text">OCR</span>
         </div>
         <div
@@ -168,7 +169,7 @@ onUnmounted(() => {
             active: currentStep === 'segment' || currentStep === 'segment_complete',
           }"
         >
-          <span class="step-icon">📝</span>
+          <span class="step-icon"><FileText :size="20" /></span>
           <span class="step-text">Segment</span>
         </div>
         <div
@@ -178,7 +179,7 @@ onUnmounted(() => {
             active: currentStep === 'ai_processing',
           }"
         >
-          <span class="step-icon">🤖</span>
+          <span class="step-icon"><Bot :size="20" /></span>
           <span class="step-text">AI Explain</span>
         </div>
         <div
@@ -188,7 +189,7 @@ onUnmounted(() => {
             active: currentStep === 'pinyin',
           }"
         >
-          <span class="step-icon">🔤</span>
+          <span class="step-icon"><Languages :size="20" /></span>
           <span class="step-text">Pinyin</span>
         </div>
         <div
@@ -198,7 +199,7 @@ onUnmounted(() => {
             active: currentStep === 'complete',
           }"
         >
-          <span class="step-icon">✅</span>
+          <span class="step-icon"><Check :size="20" /></span>
           <span class="step-text">Complete</span>
         </div>
       </div>

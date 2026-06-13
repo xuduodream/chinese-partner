@@ -11,6 +11,7 @@ import {
   validateDeckName,
 } from '../../utils/storage'
 import RenameModal from '../modal/RenameModal.vue'
+import { Trash2, FolderOpen, Pencil, ChevronDown } from '@lucide/vue'
 
 const props = defineProps<{
   currentProfile: any
@@ -118,7 +119,7 @@ function handleQuickMove(deckId: string) {
         <span class="deck-count">
           {{ currentDeck ? `(${currentDeck.cardCount || 0} cards)` : '' }}
         </span>
-        <span class="dropdown-arrow">▼</span>
+        <ChevronDown :size="14" style="margin-left: auto; flex-shrink: 0;" />
       </button>
 
       <button class="create-deck-btn" @click="showCreateModal = true">
@@ -144,21 +145,29 @@ function handleQuickMove(deckId: string) {
             <span class="deck-item-count">({{ deck.cardCount || 0 }} cards)</span>
             <span v-if="deck.description" class="deck-item-description">{{ deck.description }}</span>
           </div>
-          <button class="delete-deck-btn" @click="handleDeleteDeck(deck.id, $event)" title="Delete deck">
-            🗑️
-          </button>
-          <button class="move-deck-dropdown-btn" @click.stop="handleQuickMove(deck.id)" title="Move deck">
-            📁
+          <button
+            class="delete-deck-btn btn-icon"
+            @click="handleDeleteDeck(deck.id, $event)"
+            title="Delete deck"
+          >
+            <Trash2 :size="16" />
           </button>
           <button
-            class="rename-deck-dropdown-btn"
+            class="move-deck-dropdown-btn btn-icon"
+            @click.stop="handleQuickMove(deck.id)"
+            title="Move deck"
+          >
+            <FolderOpen :size="16" />
+          </button>
+          <button
+            class="rename-deck-dropdown-btn btn-icon"
             @click.stop="
               deckToRename = deck;
               showRenameModal = true;
             "
             title="Rename deck"
           >
-            ✏️
+            <Pencil :size="16" />
           </button>
         </div>
       </div>
@@ -192,8 +201,8 @@ function handleQuickMove(deckId: string) {
         </div>
 
         <div class="modal-actions">
-          <button class="cancel-btn" @click="showCreateModal = false">Cancel</button>
-          <button class="create-btn" @click="handleCreateDeck" :disabled="!newDeckName.trim()">
+          <button class="btn-ghost" @click="showCreateModal = false">Cancel</button>
+          <button class="btn-primary" @click="handleCreateDeck" :disabled="!newDeckName.trim()">
             Create Deck
           </button>
         </div>

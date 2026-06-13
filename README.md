@@ -10,8 +10,9 @@ A web application for learning Chinese through image-based flashcards. Extract C
 - **Audio Playback** — Listen to Chinese pronunciation via Web Speech API
 - **Multi-language Support** — Explanations in English or French
 - **Profile & Deck System** — Organize flashcards into named decks within profiles for different study contexts
-- **Spaced Review** — Review saved flashcards with audio and tracking
+- **Spaced Repetition** — SM-2 algorithm with learning/review/relearning states for efficient study
 - **Dark Mode** — Light, dark, and system theme options
+- **Backup & Restore** — Export/import profiles and decks as JSON files
 
 ## Tech Stack
 
@@ -19,14 +20,21 @@ A web application for learning Chinese through image-based flashcards. Extract C
 - **Python** + **FastAPI** — REST API server
 - **PaddleOCR** — Chinese text extraction from images
 - **pypinyin** — Pinyin generation
-- **LongCat API** — AI-powered sentence explanations
+- **LLM API** (e.g., LongCat) — AI-powered sentence explanations
 
 ### Frontend
-- **Vue 3** + **TypeScript** — UI framework
+- **Vue 3** + **TypeScript** — UI framework (Composition API + `<script setup>`)
 - **Vite** — Build tool
 - **Pinia** — State management
 - **Vue Router** — Client-side routing
+- **Lucide** — SVG icon library (consistent vector icons throughout)
 - **localStorage** — Flashcard persistence (no database required)
+
+### Frontend Design System
+- **Custom CSS design tokens** — Colors, spacing, shadows, typography via CSS custom properties
+- **4-variant button system** — `.btn`, `.btn-primary`, `.btn-danger`, `.btn-ghost` with `.btn-sm` and `.btn-icon` modifiers
+- **Responsive layout** — Desktop sidebar (220px, collapsible) + mobile bottom tab bar (breakpoint at 768px)
+- **Touch-optimized** — 44px minimum touch targets on mobile devices
 
 ## Getting Started
 
@@ -99,14 +107,26 @@ chinese-partner/
 │
 └── frontend/
     ├── src/
-    │   ├── App.vue          # Root component with sidebar layout
-    │   ├── main.ts          # Entry point
-    │   ├── router/          # Vue Router config
-    │   ├── stores/          # Pinia stores (app state, flashcards)
-    │   ├── components/      # Reusable components
-    │   ├── views/           # Page components
-    │   ├── utils/           # Storage and utility functions
-    │   └── index.css        # Global styles
+    │   ├── App.vue              # Root layout (sidebar, mobile tab bar, theme)
+    │   ├── main.ts              # Vue app entry point
+    │   ├── router/index.ts      # Route definitions (5 routes)
+    │   ├── pages/               # Page-level route components
+    │   │   ├── LandingPage.vue      # Home page with feature overview
+    │   │   ├── ImportPage.vue       # Image upload & flashcard creation
+    │   │   ├── RevisionPage.vue     # Deck list, review, and study session
+    │   │   ├── DeckManagerPage.vue  # Hierarchical profile/deck/card manager
+    │   │   └── BackupRestorePage.vue # Export/import JSON backups
+    │   ├── components/          # Reusable Vue components
+    │   │   ├── card/               # Flashcard, CardFormModal
+    │   │   ├── deck/               # DeckManager, DeckReviewPage, StudySession
+    │   │   ├── modal/              # DeckMoveModal, RenameModal
+    │   │   ├── profile/            # ProfileManager
+    │   │   └── shared/             # ImageUpload, ProgressBar, StudyStats
+    │   ├── stores/              # Pinia stores
+    │   │   ├── app.ts              # Sidebar, theme, profiles, decks
+    │   │   └── saved.ts            # Saved flashcard tracking
+    │   ├── utils/               # Storage utilities (localStorage persistence)
+    │   └── index.css            # Global styles with design tokens (CSS custom properties)
     ├── package.json
     └── vite.config.ts
 ```
@@ -126,6 +146,15 @@ Cards are stored in browser `localStorage` — no account or database needed. Ea
 
 Cards are organized into **Profiles** (e.g., "Work", "Travel") and **Decks** (named collections within a profile).
 
+### Spaced Repetition (SM-2)
+
+The study system implements a simplified SM-2 algorithm with three card states:
+- **Learning** — New cards go through graduated steps before becoming "review" cards
+- **Review** — Graduated cards appear on schedule based on ease factor and interval
+- **Relearning** — Lapsed cards (rated "again" during review) re-enter learning steps
+
+Each review session provides four rating options (Again, Hard, Good, Easy) with keyboard shortcuts (1/A, 2/H, 3/G, 4/E) and Space to reveal the answer.
+
 ## Deployment
 
 ```bash
@@ -136,6 +165,15 @@ cd frontend && npm run build
 # Run backend on custom port
 cd backend && uvicorn app:app --host 0.0.0.0 --port 8000
 ```
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `LLM_API_KEY` | API key for the LLM provider | Yes |
+| `VITE_API_BASE_URL` | Backend API endpoint (frontend) | No (default: `http://localhost:8000`) |
+| `VITE_API_TIMEOUT` | API request timeout in ms | No |
+| `VITE_ENABLE_LOGGING` | Enable console logging | No |
 
 ## License
 

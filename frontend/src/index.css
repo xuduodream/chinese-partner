@@ -673,38 +673,6 @@ header h1 {
   margin-top: 20px;
 }
 
-.cancel-btn, .create-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.cancel-btn {
-  background: var(--bg-muted);
-  color: var(--text-muted);
-}
-
-.cancel-btn:hover {
-  background: var(--border);
-}
-
-.create-btn {
-  background: var(--c-success);
-  color: white;
-}
-
-.create-btn:hover:not(:disabled) {
-  background: var(--c-success);
-}
-
-.create-btn:disabled {
-  background: var(--c-slate-300);
-  cursor: not-allowed;
-}
-
 /* Current Info Display */
 .current-profile-info, .current-deck-info {
   margin-top: 10px;
@@ -899,20 +867,6 @@ header h1 {
 .profile-selection-count {
   font-size: 12px;
   color: var(--text-muted);
-}
-
-.back-btn {
-  background: none;
-  border: none;
-  color: var(--c-primary);
-  cursor: pointer;
-  font-size: 13px;
-  padding: 4px 0 12px 0;
-  display: block;
-}
-
-.back-btn:hover {
-  text-decoration: underline;
 }
 
 /* No Profile Message */
@@ -1296,22 +1250,6 @@ header h1 {
   border-bottom: 1px solid var(--border);
 }
 
-.back-btn {
-  padding: 8px 16px;
-  background: var(--c-primary);
-  color: white;
-  border: 1px solid var(--c-primary-dark);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.back-btn:hover {
-  background: var(--c-primary-dark);
-  border-color: var(--c-primary-dark);
-}
 
 .deck-review-header h2 {
   margin: 0;
@@ -1394,6 +1332,7 @@ header h1 {
   min-width: 120px;
   overflow: hidden;
 }
+.actions-menu.visible { display: block; }
 
 .action-item {
   display: block;
@@ -1507,20 +1446,6 @@ header h1 {
   background: var(--bg-surface);
 }
 
-.delete-btn {
-  padding: 8px 12px;
-  background: var(--c-danger);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background 0.2s;
-}
-
-.delete-btn:hover {
-  background: color-mix(in srgb, var(--c-danger) 80%, black);
-}
 
 /* Sleek Deck Card Styles */
 .deck-card-enhanced {
@@ -2403,7 +2328,7 @@ header {
   margin-top: 4px;
 }
 
-.dropdown-content.show {
+.dropdown-content.visible {
   display: block;
 }
 
@@ -2865,20 +2790,6 @@ header {
 }
 
 /* Deck Rename Styles */
-.rename-deck-btn {
-  background: var(--c-warning);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background 0.2s;
-}
-
-.rename-deck-btn:hover {
-  background: var(--c-warning);
-}
 
 .rename-deck-dropdown-btn {
   background: none;
@@ -2913,25 +2824,6 @@ header {
   font-size: 14px;
 }
 
-.save-btn {
-  background: var(--c-success);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.save-btn:hover:not(:disabled) {
-  background: var(--c-success);
-}
-
-.save-btn:disabled {
-  background: var(--c-slate-300);
-  cursor: not-allowed;
-}
 
 
 .image-upload {
@@ -3129,6 +3021,75 @@ header {
   padding-bottom: 5px;
 }
 
+/* ── Unified Button System ──────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  min-height: 36px;
+  line-height: 1.4;
+  text-decoration: none;
+  font-family: inherit;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--c-primary);
+  color: white;
+  border-color: var(--c-primary);
+}
+.btn-primary:hover { background: var(--c-primary-dark); border-color: var(--c-primary-dark); }
+
+.btn-danger {
+  background: var(--c-danger);
+  color: white;
+  border-color: var(--c-danger);
+}
+.btn-danger:hover { background: color-mix(in srgb, var(--c-danger) 80%, black); border-color: color-mix(in srgb, var(--c-danger) 80%, black); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.btn-ghost:hover { background: var(--bg-muted); color: var(--text-body); }
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  min-height: 32px;
+  border-radius: 6px;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+.btn-icon svg { width: 18px; height: 18px; }
+
+@media (pointer: coarse) {
+  .btn, .btn-icon { min-height: 44px; }
+  .btn-icon { width: 44px; height: 44px; }
+}
+
 button {
   padding: 8px 16px;
   border: 1px solid var(--border);
@@ -3182,18 +3143,6 @@ button.success:hover {
   border-color: color-mix(in srgb, var(--c-success) 80%, black);
 }
 
-/* Audio buttons */
-.save-btn, .delete-btn {
-  margin-top: 10px;
-}
-
-.delete-btn {
-  background: var(--c-danger);
-}
-
-.delete-btn:hover {
-  background: color-mix(in srgb, var(--c-danger) 80%, black);
-}
 
 .error {
   color: var(--c-danger);

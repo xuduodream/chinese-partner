@@ -6,6 +6,7 @@ import { useSavedStore } from '../stores/saved'
 import { getProfiles, getDecks, getCards } from '../utils/storage'
 import { getDeckById } from '../utils/storage'
 import { saveCard } from '../utils/storage'
+import { Volume2, Lightbulb, Check, Save, ArrowLeft } from '@lucide/vue'
 
 const appStore = useAppStore()
 const savedStore = useSavedStore()
@@ -106,31 +107,31 @@ function handleStepBack() {
                 <td class="actions-cell">
                   <div class="flashcard-actions">
                     <button class="action-pill" @click="speak(sentence.original, 'zh-CN')" title="Listen to Chinese">
-                      🔊 Chinese
+                      <Volume2 :size="16" /> Chinese
                     </button>
                     <button
                       class="action-pill"
                       @click="speak(sentence.translation, appStore.targetLang === 'fr' ? 'fr-FR' : 'en-US')"
                       title="Listen to Translation"
                     >
-                      🔊 Translation
+                      <Volume2 :size="16" /> Translation
                     </button>
                     <button class="action-pill show-details" @click="toggleDetails">
-                      💡 Details
+                      <Lightbulb :size="16" /> Details
                     </button>
                     <button
                       v-if="savedStore.isSaved(idx)"
                       class="action-pill save"
                       disabled
                     >
-                      ✅ Saved
+                      <Check :size="16" /> Saved
                     </button>
                     <button
                       v-else
                       class="action-pill save"
                       @click="handleSaveCardWithFeedback(sentence, idx)"
                     >
-                      💾 Save
+                      <Save :size="16" /> Save
                     </button>
                   </div>
                 </td>
@@ -173,7 +174,9 @@ function handleStepBack() {
 
         <template v-else>
           <p>Choose a deck in profile "{{ getProfiles().find((p: any) => p.id === appStore.selectedProfileId)?.name }}":</p>
-          <button class="back-btn" @click="handleStepBack">← Back to profiles</button>
+          <button class="btn-ghost" @click="handleStepBack" style="margin-bottom: 12px;">
+            <ArrowLeft :size="16" /> Back to profiles
+          </button>
           <div v-if="appStore.availableDecks.length === 0" class="no-decks-message">
             No decks available. Please create a deck first.
           </div>
@@ -191,7 +194,7 @@ function handleStepBack() {
         </template>
 
         <div class="modal-actions">
-          <button class="cancel-btn" @click="appStore.closeDeckSelector()">Cancel</button>
+          <button class="btn-ghost" @click="appStore.closeDeckSelector()">Cancel</button>
         </div>
       </div>
     </div>

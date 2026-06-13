@@ -7,6 +7,7 @@ import {
   updateDeckLastStudied,
 } from '../../utils/storage'
 import ProgressBar from '../shared/ProgressBar.vue'
+import { PartyPopper, CheckCircle2, Circle, RefreshCw, Check, Volume2, Info } from '@lucide/vue'
 
 const props = defineProps<{
   deck: any
@@ -161,10 +162,10 @@ const completionAccuracy = computed(() => {
     <template v-if="completed">
       <div class="study-header">
         <h2>Study Complete: {{ deck.name }}</h2>
-        <button @click="onComplete" class="exit-btn">Exit</button>
+        <button @click="onComplete" class="btn-danger">Exit</button>
       </div>
       <div class="completion-summary">
-        <h3>🎉 Session Complete!</h3>
+        <h3><PartyPopper :size="24" style="display: inline; vertical-align: middle; margin-right: 4px;" /> Session Complete!</h3>
         <div class="completion-stats">
           <div class="completion-stat">
             <span class="completion-stat-value">{{ sessionStats.studied }}</span>
@@ -180,10 +181,10 @@ const completionAccuracy = computed(() => {
           </div>
         </div>
         <div class="completion-breakdown">
-          <span class="breakdown-item breakdown-again">🔴 {{ sessionStats.again }} Again</span>
-          <span class="breakdown-item breakdown-hard">🟠 {{ sessionStats.hard }} Hard</span>
-          <span class="breakdown-item breakdown-good">🟢 {{ sessionStats.good }} Good</span>
-          <span class="breakdown-item breakdown-easy">🔵 {{ sessionStats.easy }} Easy</span>
+          <span class="breakdown-item breakdown-again"><span class="dot dot-again"></span> {{ sessionStats.again }} Again</span>
+          <span class="breakdown-item breakdown-hard"><span class="dot dot-hard"></span> {{ sessionStats.hard }} Hard</span>
+          <span class="breakdown-item breakdown-good"><span class="dot dot-good"></span> {{ sessionStats.good }} Good</span>
+          <span class="breakdown-item breakdown-easy"><span class="dot dot-easy"></span> {{ sessionStats.easy }} Easy</span>
         </div>
       </div>
     </template>
@@ -192,10 +193,10 @@ const completionAccuracy = computed(() => {
     <template v-else-if="!currentCard">
       <div class="study-header">
         <h2>{{ deck.name }}</h2>
-        <button @click="onComplete" class="exit-btn">Exit</button>
+        <button @click="onComplete" class="btn-danger">Exit</button>
       </div>
       <div class="completion-summary">
-        <h3>✅ All caught up!</h3>
+        <h3><CheckCircle2 :size="24" style="display: inline; vertical-align: middle; margin-right: 4px;" /> All caught up!</h3>
         <p>No cards due for review. Come back later!</p>
         <div class="completion-stats">
           <div class="completion-stat">
@@ -220,20 +221,26 @@ const completionAccuracy = computed(() => {
             <template v-if="dueCount > 0"> · {{ dueCount }} due</template>
             <template v-if="newCount > 0 && currentCard?.state === 'learning'"> · {{ newCount }} new</template>
           </span>
-          <span v-if="currentCard?.state === 'learning'" class="state-badge learning-badge">🔵 Learning</span>
-          <span v-else-if="currentCard?.state === 'relearning'" class="state-badge relearning-badge">🔄 Relearning</span>
-          <span v-else-if="currentCard?.state === 'review'" class="state-badge review-badge">✅ Review</span>
+          <span v-if="currentCard?.state === 'learning'" class="state-badge learning-badge">
+            <Circle :size="12" fill="var(--c-primary)" color="var(--c-primary)" style="vertical-align: middle; margin-right: 2px;" /> Learning
+          </span>
+          <span v-else-if="currentCard?.state === 'relearning'" class="state-badge relearning-badge">
+            <RefreshCw :size="12" style="vertical-align: middle; margin-right: 2px;" /> Relearning
+          </span>
+          <span v-else-if="currentCard?.state === 'review'" class="state-badge review-badge">
+            <Check :size="12" style="vertical-align: middle; margin-right: 2px;" /> Review
+          </span>
         </div>
-        <button @click="onComplete" class="exit-btn">Exit Study</button>
+        <button @click="onComplete" class="btn-danger btn-sm">Exit Study</button>
       </div>
 
       <!-- Rating feedback banner -->
       <div v-if="lastRating" class="rating-feedback" :class="lastRating.rating">
         <span class="rating-feedback-text">
-          <template v-if="lastRating.rating === 'again'">🔴 Again</template>
-          <template v-else-if="lastRating.rating === 'hard'">🟠 Hard</template>
-          <template v-else-if="lastRating.rating === 'good'">🟢 Good</template>
-          <template v-else-if="lastRating.rating === 'easy'">🔵 Easy</template>
+          <template v-if="lastRating.rating === 'again'"><span class="dot dot-again"></span> Again</template>
+          <template v-else-if="lastRating.rating === 'hard'"><span class="dot dot-hard"></span> Hard</template>
+          <template v-else-if="lastRating.rating === 'good'"><span class="dot dot-good"></span> Good</template>
+          <template v-else-if="lastRating.rating === 'easy'"><span class="dot dot-easy"></span> Easy</template>
           ·
           <template v-if="(lastRating.rating === 'good' || lastRating.rating === 'easy') && lastRating.state === 'review'">Graduated! → Review</template>
           <template v-else-if="lastRating.rating === 'again' && lastRating.state === 'relearning'">Lapsed → Relearning</template>
@@ -269,13 +276,13 @@ const completionAccuracy = computed(() => {
 
             <div class="audio-section">
               <button class="audio-btn" @click.stop="speak(currentCard.original, 'zh-CN')">
-                🔊 Listen Chinese
+                <Volume2 :size="16" /> Listen Chinese
               </button>
               <button
                 class="audio-btn"
                 @click.stop="speak(currentCard.translation, currentCard.targetLang === 'fr' ? 'fr-FR' : 'en-US')"
               >
-                🔊 Listen Translation
+                <Volume2 :size="16" /> Listen Translation
               </button>
             </div>
           </div>
@@ -285,16 +292,16 @@ const completionAccuracy = computed(() => {
             <h4>How well did you know this?</h4>
             <div class="rating-buttons">
               <button class="rate-btn again" @click="handleRating('again')" title="1 or A - Again">
-                🔴 Again
+                Again
               </button>
               <button class="rate-btn hard" @click="handleRating('hard')" title="2 or H - Hard">
-                🟠 Hard
+                Hard
               </button>
               <button class="rate-btn good" @click="handleRating('good')" title="3 or G - Good">
-                🟢 Good
+                Good
               </button>
               <button class="rate-btn easy" @click="handleRating('easy')" title="4 or E - Easy">
-                🔵 Easy
+                Easy
               </button>
             </div>
             <div class="keyboard-hint">
@@ -302,7 +309,7 @@ const completionAccuracy = computed(() => {
             </div>
 
             <details class="sm2-explainer">
-              <summary>ℹ️ How ratings work (Anki)</summary>
+              <summary><Info :size="16" style="display: inline; vertical-align: middle; margin-right: 2px;" /> How ratings work (Anki)</summary>
               <table class="sm2-table">
                 <thead>
                   <tr>
@@ -313,28 +320,28 @@ const completionAccuracy = computed(() => {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>🔴 Again</td>
+                    <td><span class="dot dot-again"></span> Again</td>
                     <td>Restart at step 1. Ease −0.20</td>
                     <td>Lapses → relearning. Interval × 0.5. Ease −0.20</td>
                   </tr>
                   <tr>
-                    <td>🟠 Hard</td>
+                    <td><span class="dot dot-hard"></span> Hard</td>
                     <td>1.5× current step delay. Ease −0.15</td>
                     <td>Interval × 1.2. Ease −0.15</td>
                   </tr>
                   <tr>
-                    <td>🟢 Good</td>
+                    <td><span class="dot dot-good"></span> Good</td>
                     <td>Advance to next step. Last step → graduates (1d). Ease +0.15</td>
                     <td>Interval × ease. Ease +0.15</td>
                   </tr>
                   <tr>
-                    <td>🔵 Easy</td>
+                    <td><span class="dot dot-easy"></span> Easy</td>
                     <td>Skip all steps → graduates (4d). Ease +0.30</td>
                     <td>Interval × ease × 1.3. Ease +0.30</td>
                   </tr>
                 </tbody>
               </table>
-              <p class="sm2-footnote">🔄 Relearning cards (lapsed) follow the same steps as Learning but with their own step timings.</p>
+              <p class="sm2-footnote"><RefreshCw :size="12" style="display: inline; vertical-align: middle; margin-right: 2px;" /> Relearning cards (lapsed) follow the same steps as Learning but with their own step timings.</p>
             </details>
           </div>
         </div>
@@ -344,3 +351,18 @@ const completionAccuracy = computed(() => {
     </template>
   </div>
 </template>
+
+<style scoped>
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.dot-again { background: var(--c-danger, #ef4444); }
+.dot-hard { background: var(--c-warning, #f59e0b); }
+.dot-good { background: var(--c-success, #22c55e); }
+.dot-easy { background: var(--c-primary, #3b82f6); }
+</style>

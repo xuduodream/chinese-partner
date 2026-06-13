@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { getProfiles, getDecks, saveCard, updateCard } from '../../utils/storage'
+import { Pencil, Plus, Save, LoaderCircle } from '@lucide/vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -132,7 +133,11 @@ const allProfiles = getProfiles()
 <template>
   <div v-if="isOpen" class="modal-overlay" @click="emit('close')">
     <div class="modal-content card-form-modal" @click.stop>
-      <h3>{{ isEditing() ? '✏️ Edit Card' : '➕ New Card' }}</h3>
+      <h3>
+        <Pencil v-if="isEditing()" :size="20" style="display: inline; vertical-align: middle; margin-right: 4px;" />
+        <Plus v-else :size="20" style="display: inline; vertical-align: middle; margin-right: 4px;" />
+        {{ isEditing() ? 'Edit Card' : 'New Card' }}
+      </h3>
 
       <form @submit="handleSubmit">
         <!-- Create-mode: profile + deck selectors -->
@@ -241,14 +246,26 @@ const allProfiles = getProfiles()
         <div v-if="error" class="error-message">{{ error }}</div>
 
         <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="emit('close')" :disabled="saving">
+          <button type="button" class="btn-ghost" @click="emit('close')" :disabled="saving">
             Cancel
           </button>
-          <button type="submit" class="create-btn" :disabled="saving">
-            {{ saving ? '💾 Saving...' : '💾 Save Card' }}
+          <button type="submit" class="btn-primary" :disabled="saving">
+            <LoaderCircle v-if="saving" :size="16" class="spin" />
+            <Save v-else :size="16" />
+            {{ saving ? 'Saving...' : 'Save Card' }}
           </button>
         </div>
       </form>
     </div>
   </div>
 </template>
+
+<style scoped>
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>

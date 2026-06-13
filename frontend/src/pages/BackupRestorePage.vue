@@ -13,6 +13,17 @@ import {
   downloadFile,
   getBackupPreview,
 } from '../utils/backup'
+import {
+  Save,
+  Download,
+  Package2,
+  Upload,
+  FolderOpen,
+  Search,
+  AlertTriangle,
+  LoaderCircle,
+  X,
+} from '@lucide/vue'
 
 const profiles = ref<any[]>([])
 const selectedProfileId = ref<string | null>(null)
@@ -59,7 +70,7 @@ function handleExportProfile() {
     const safeName = (profile?.name || 'profile').replace(/[^a-zA-Z0-9_-]/g, '_')
     const date = new Date().toISOString().split('T')[0]
     downloadFile(data, `MemBoost_Backup_${safeName}_${date}.json`)
-    message.value = { type: 'success', text: '✅ Profile backup created!' }
+    message.value = { type: 'success', text: 'Profile backup created!' }
   } catch (err: any) {
     message.value = { type: 'error', text: err.message }
   }
@@ -70,7 +81,7 @@ function handleExportAll() {
     const data = exportAll()
     const date = new Date().toISOString().split('T')[0]
     downloadFile(data, `MemBoost_FullBackup_${date}.json`)
-    message.value = { type: 'success', text: '✅ Full backup created!' }
+    message.value = { type: 'success', text: 'Full backup created!' }
   } catch (err: any) {
     message.value = { type: 'error', text: err.message }
   }
@@ -118,7 +129,7 @@ function handleRestore() {
     const names = result.names.join(', ')
     message.value = {
       type: 'success',
-      text: `✅ Restored: ${result.profilesImported} profile(s), ${result.decksImported} deck(s), ${result.cardsImported} card(s) as "${names}"`,
+      text: `Restored: ${result.profilesImported} profile(s), ${result.decksImported} deck(s), ${result.cardsImported} card(s) as "${names}"`,
     }
     refresh()
   } catch (err: any) {
@@ -139,21 +150,21 @@ const totalCards = () => deckBreakdown.value.reduce((sum, d) => sum + d.cardCoun
 <template>
   <div class="backup-page">
     <div class="backup-header">
-      <h2>💾 Backup &amp; Restore</h2>
+      <h2><Save :size="24" style="display: inline; vertical-align: middle; margin-right: 4px;" /> Backup &amp; Restore</h2>
       <p class="backup-subtitle">Safeguard your flashcards or move them between devices.</p>
     </div>
 
     <!-- Transient message -->
     <div v-if="message" class="backup-message" :class="message.type" @click="dismissMessage">
       <span>{{ message.text }}</span>
-      <button class="backup-message-dismiss" @click="dismissMessage">×</button>
+      <button class="backup-message-dismiss" @click="dismissMessage"><X :size="16" /></button>
     </div>
 
     <div class="backup-grid">
       <!-- Export Card -->
       <div class="backup-card">
         <div class="backup-card-header">
-          <span class="backup-card-icon">📥</span>
+          <span class="backup-card-icon"><Download :size="24" /></span>
           <h3>Export</h3>
         </div>
         <div class="backup-card-body">
@@ -186,13 +197,13 @@ const totalCards = () => deckBreakdown.value.reduce((sum, d) => sum + d.cardCoun
             @click="handleExportProfile"
             :disabled="!selectedProfileId"
           >
-            📥 Export Profile
+            <Download :size="16" /> Export Profile
           </button>
 
           <div class="backup-divider"><span>or</span></div>
 
           <button class="backup-btn backup-btn-secondary" @click="handleExportAll">
-            📦 Backup All
+            <Package2 :size="16" /> Backup All
           </button>
           <p class="backup-hint">Exports every profile, deck, and card into one file.</p>
         </div>
@@ -201,7 +212,7 @@ const totalCards = () => deckBreakdown.value.reduce((sum, d) => sum + d.cardCoun
       <!-- Import Card -->
       <div class="backup-card">
         <div class="backup-card-header">
-          <span class="backup-card-icon">📤</span>
+          <span class="backup-card-icon"><Upload :size="24" /></span>
           <h3>Import</h3>
         </div>
         <div class="backup-card-body">
@@ -220,7 +231,7 @@ const totalCards = () => deckBreakdown.value.reduce((sum, d) => sum + d.cardCoun
               @change="handleFileChange"
               style="display: none"
             />
-            <div class="backup-upload-icon">📂</div>
+            <div class="backup-upload-icon"><FolderOpen :size="48" /></div>
             <p class="backup-upload-text">
               Click or drag a <strong>.json</strong> backup file here
             </p>
@@ -233,7 +244,7 @@ const totalCards = () => deckBreakdown.value.reduce((sum, d) => sum + d.cardCoun
     <!-- Import Preview Modal -->
     <div v-if="showPreview && preview" class="modal-overlay" @click="showPreview = false">
       <div class="modal-content backup-preview-modal" @click.stop>
-        <h3>🔍 Preview Backup</h3>
+        <h3><Search :size="20" style="display: inline; vertical-align: middle; margin-right: 4px;" /> Preview Backup</h3>
 
         <div v-if="preview.type === 'profile'" class="preview-summary">
           <div class="preview-row">
@@ -284,18 +295,31 @@ const totalCards = () => deckBreakdown.value.reduce((sum, d) => sum + d.cardCoun
         </div>
 
         <div class="backup-warning">
-          ⚠️ If a profile with the same name already exists, it will be overwritten (decks and cards replaced).
+          <AlertTriangle :size="16" style="display: inline; vertical-align: middle; margin-right: 4px;" />
+          If a profile with the same name already exists, it will be overwritten (decks and cards replaced).
         </div>
 
         <div class="backup-preview-actions">
-          <button class="cancel-btn" @click="showPreview = false; preview = null; previewData = null">
+          <button class="btn-ghost" @click="showPreview = false; preview = null; previewData = null">
             Cancel
           </button>
-          <button class="backup-btn backup-btn-success" @click="handleRestore" :disabled="importing">
-            {{ importing ? '⏳ Restoring...' : '📤 Restore' }}
+          <button class="btn-primary" @click="handleRestore" :disabled="importing">
+            <LoaderCircle v-if="importing" :size="16" class="spin" style="margin-right: 4px;" />
+            <Upload v-else :size="16" style="margin-right: 4px;" />
+            {{ importing ? 'Restoring...' : 'Restore' }}
           </button>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>

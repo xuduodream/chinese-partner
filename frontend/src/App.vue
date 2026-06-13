@@ -3,6 +3,19 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from './stores/app'
 import { checkAndMigrateData } from './utils/storage'
 import { onMounted, ref } from 'vue'
+import {
+  House,
+  Upload,
+  BookOpen,
+  FolderTree,
+  Save,
+  Sun,
+  Moon,
+  Monitor,
+  ChevronLeft,
+  ChevronRight,
+  PartyPopper,
+} from '@lucide/vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,19 +34,17 @@ onMounted(() => {
 })
 
 const navItems = [
-  { path: '/', name: 'landing', icon: '🏠', label: 'Home' },
-  { path: '/import', name: 'import', icon: '📤', label: 'Import' },
-  { path: '/review', name: 'review', icon: '📚', label: 'Review' },
-  { path: '/manager', name: 'manager', icon: '🗂️', label: 'Manager' },
-  { path: '/backup', name: 'backup', icon: '💾', label: 'Backup' },
+  { path: '/', name: 'landing', icon: 'House', label: 'Home' },
+  { path: '/import', name: 'import', icon: 'Upload', label: 'Import' },
+  { path: '/review', name: 'review', icon: 'BookOpen', label: 'Review' },
+  { path: '/manager', name: 'manager', icon: 'FolderTree', label: 'Manager' },
+  { path: '/backup', name: 'backup', icon: 'Save', label: 'Backup' },
 ]
 
-const themeModes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
-
 const themeIcons: Record<string, string> = {
-  light: '☀️',
-  dark: '🌙',
-  system: '🖥️',
+  light: 'Sun',
+  dark: 'Moon',
+  system: 'Monitor',
 }
 
 const themeLabels: Record<string, string> = {
@@ -41,6 +52,13 @@ const themeLabels: Record<string, string> = {
   dark: 'Dark',
   system: 'System',
 }
+
+const iconMap: Record<string, any> = {
+  House, Upload, BookOpen, FolderTree, Save,
+  Sun, Moon, Monitor,
+}
+
+const themeModes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
 
 function cycleTheme() {
   const modes = themeModes
@@ -70,14 +88,14 @@ function navigate(path: string) {
             :class="{ active: route.path === item.path }"
             @click="navigate(item.path)"
           >
-            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-icon"><component :is="iconMap[item.icon]" :size="20" /></span>
             <span class="nav-text">{{ item.label }}</span>
           </button>
         </div>
 
         <!-- Theme Toggle -->
         <button class="theme-toggle" @click="cycleTheme" :title="'Theme: ' + themeLabels[appStore.themeMode]">
-          <span class="nav-icon">{{ themeIcons[appStore.themeMode] }}</span>
+          <span class="nav-icon"><component :is="iconMap[themeIcons[appStore.themeMode]]" :size="20" /></span>
           <span class="nav-text">{{ themeLabels[appStore.themeMode] }}</span>
         </button>
       </nav>
@@ -88,7 +106,8 @@ function navigate(path: string) {
         @click="appStore.toggleSidebar()"
         :title="appStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
       >
-        {{ appStore.sidebarCollapsed ? '→' : '←' }}
+        <ChevronRight v-if="appStore.sidebarCollapsed" :size="12" />
+        <ChevronLeft v-else :size="12" />
       </button>
 
       <!-- Main Content Area -->
@@ -104,11 +123,11 @@ function navigate(path: string) {
           :to="item.path"
           class="tab-btn"
         >
-          <span class="tab-icon">{{ item.icon }}</span>
+          <span class="tab-icon"><component :is="iconMap[item.icon]" :size="20" /></span>
           <span class="tab-label">{{ item.label }}</span>
         </router-link>
         <button class="tab-btn theme-tab-btn" @click="cycleTheme" title="Toggle theme">
-          <span class="tab-icon">{{ themeIcons[appStore.themeMode] }}</span>
+          <span class="tab-icon"><component :is="iconMap[themeIcons[appStore.themeMode]]" :size="20" /></span>
           <span class="tab-label">{{ themeLabels[appStore.themeMode] }}</span>
         </button>
       </nav>
@@ -117,7 +136,7 @@ function navigate(path: string) {
     <!-- Migration Dialog -->
     <div v-if="showMigrationDialog" class="migration-notification">
       <div class="migration-content">
-        <h3>🎉 Welcome to Profiles & Decks!</h3>
+        <h3><PartyPopper :size="20" style="display: inline; vertical-align: middle; margin-right: 4px;" /> Welcome to Profiles &amp; Decks!</h3>
         <p>Your existing flashcards have been migrated to a new profile/deck system.</p>
         <p>Create profiles for different study contexts and organize cards into named decks!</p>
       </div>
