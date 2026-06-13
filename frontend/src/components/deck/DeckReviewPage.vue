@@ -22,7 +22,7 @@ const selectedTargetDeck = ref('')
 
 watch(() => props.deck, (deck) => {
   if (deck) loadCards()
-}, { immediate: false })
+}, { immediate: true })
 
 function loadCards() {
   if (!props.deck) return
