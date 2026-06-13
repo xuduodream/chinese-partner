@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { getDecks } from '../../utils/storage'
+import { Eye, Volume2, Check, Save } from '@lucide/vue'
 
 const props = defineProps<{
   card: {
@@ -63,10 +64,10 @@ function toggleBack(e: MouseEvent) {
       <p class="pinyin">{{ card.pinyin }}</p>
       <button
         v-if="!showBack"
-        class="action-pill show-details"
+        class="btn-ghost"
         @click.stop="showBack = true"
       >
-        👁️ Show Explanation
+        <Eye :size="16" /> Show Explanation
       </button>
     </div>
 
@@ -80,23 +81,25 @@ function toggleBack(e: MouseEvent) {
       <p><strong>Example:</strong> {{ card.example }}</p>
 
       <div class="audio-buttons">
-        <button class="audio-btn" @click.stop="speak(card.original, 'zh-CN')">
-          🔊 Chinese
+        <button class="btn-ghost" @click.stop="speak(card.original, 'zh-CN')">
+          <Volume2 :size="16" /> Chinese
         </button>
         <button
-          class="audio-btn"
+          class="btn-ghost"
           @click.stop="speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US')"
         >
-          🔊 Translation
+          <Volume2 :size="16" /> Translation
         </button>
       </div>
 
       <button
-        class="action-pill save"
+        class="btn-primary"
         @click.stop="handleSave"
         :disabled="saved"
       >
-        {{ saved ? '✅ Saved!' : `💾 Save to ${currentDeck ? currentDeck.name : 'Deck'}` }}
+        <Check v-if="saved" :size="16" />
+        <Save v-else :size="16" />
+        {{ saved ? 'Saved!' : `Save to ${currentDeck ? currentDeck.name : 'Deck'}` }}
       </button>
 
       <!-- Deck Selection Modal -->
@@ -121,7 +124,7 @@ function toggleBack(e: MouseEvent) {
           </div>
 
           <div class="modal-actions">
-            <button class="cancel-btn" @click="showDeckSelector = false">
+            <button class="btn-ghost" @click="showDeckSelector = false">
               Cancel
             </button>
           </div>

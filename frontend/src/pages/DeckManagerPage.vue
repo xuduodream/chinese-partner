@@ -14,6 +14,16 @@ import {
 } from '../utils/storage'
 import RenameModal from '../components/modal/RenameModal.vue'
 import CardFormModal from '../components/card/CardFormModal.vue'
+import {
+  FolderTree,
+  Trash2,
+  Pencil,
+  Plus,
+  ChevronDown,
+  ChevronRight,
+  AlertCircle,
+  Calendar,
+} from '@lucide/vue'
 
 const PREFIX_PROFILE = 'p:'
 const PREFIX_DECK = 'd:'
@@ -112,18 +122,18 @@ function formatNextReview(card: any): { text: string; urgent: boolean } | null {
   const next = new Date(card.nextReview)
   const diffMs = next.getTime() - now.getTime()
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
-  if (diffMs <= 0) return { text: '🔴 due', urgent: true }
-  if (diffDays === 0) return { text: '🔴 due today', urgent: true }
-  if (diffDays === 1) return { text: '📅 tomorrow', urgent: false }
-  if (diffDays < 30) return { text: `📅 ${diffDays}d`, urgent: false }
-  return { text: `📅 ${next.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`, urgent: false }
+  if (diffMs <= 0) return { text: 'due', urgent: true }
+  if (diffDays === 0) return { text: 'due today', urgent: true }
+  if (diffDays === 1) return { text: 'tomorrow', urgent: false }
+  if (diffDays < 30) return { text: `${diffDays}d`, urgent: false }
+  return { text: next.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), urgent: false }
 }
 </script>
 
 <template>
   <div class="manager-page">
     <div class="manager-header">
-      <h2>🗂️ Deck Manager</h2>
+      <h2><FolderTree :size="24" style="display: inline; vertical-align: middle; margin-right: 4px;" /> Deck Manager</h2>
       <p class="manager-subtitle">Browse, rename, edit, and delete all your profiles, decks, and cards.</p>
     </div>
 
@@ -145,7 +155,7 @@ function formatNextReview(card: any): { text: string; urgent: boolean } | null {
           @click="handleBatchDelete"
           :disabled="selected.size === 0"
         >
-          🗑️ Delete ({{ selected.size }})
+          <Trash2 :size="14" style="vertical-align: middle; margin-right: 4px;" /> Delete ({{ selected.size }})
         </button>
       </div>
     </div>
@@ -177,7 +187,8 @@ function formatNextReview(card: any): { text: string; urgent: boolean } | null {
               <td class="entity-col">
                 <div class="entity-row">
                   <button class="toggle-icon" @click="toggleProfile(p.id)">
-                    {{ expandedProfiles.has(p.id) ? '▼' : '▶' }}
+                    <ChevronDown v-if="expandedProfiles.has(p.id)" :size="16" />
+                    <ChevronRight v-else :size="16" />
                   </button>
                   <span class="entity-name">{{ p.name }}</span>
                   <span class="entity-meta">
@@ -187,10 +198,10 @@ function formatNextReview(card: any): { text: string; urgent: boolean } | null {
                   <span class="entity-date">{{ new Date(p.createdAt).toLocaleDateString() }}</span>
                   <span class="actions-col">
                     <button class="action-icon-btn" title="Rename" @click="renameState = { show: true, type: 'profile', id: p.id, name: p.name, profileId: '' }">
-                      ✏️
+                      <Pencil :size="16" />
                     </button>
                     <button class="action-icon-btn danger" title="Delete" @click="handleDelete('profile', p.id)">
-                      🗑️
+                      <Trash2 :size="16" />
                     </button>
                   </span>
                 </div>
@@ -211,20 +222,21 @@ function formatNextReview(card: any): { text: string; urgent: boolean } | null {
                   <td class="entity-col">
                     <div class="entity-row">
                       <button class="toggle-icon" @click="toggleDeck(d.id)">
-                        {{ expandedDecks.has(d.id) ? '▼' : '▶' }}
+                        <ChevronDown v-if="expandedDecks.has(d.id)" :size="16" />
+                        <ChevronRight v-else :size="16" />
                       </button>
                       <span class="entity-name">{{ d.name }}</span>
                       <span class="entity-meta">{{ cards.filter(c => c.deckId === d.id).length }} card(s)</span>
                       <span class="entity-date">{{ new Date(d.createdAt).toLocaleDateString() }}</span>
                       <span class="actions-col">
                         <button class="action-icon-btn" title="Rename" @click="renameState = { show: true, type: 'deck', id: d.id, name: d.name, profileId: d.profileId }">
-                          ✏️
+                          <Pencil :size="16" />
                         </button>
                         <button class="action-icon-btn" title="Add card" @click="cardForm = { show: true, card: null, deckId: d.id }">
-                          ➕
+                          <Plus :size="16" />
                         </button>
                         <button class="action-icon-btn danger" title="Delete" @click="handleDelete('deck', d.id)">
-                          🗑️
+                          <Trash2 :size="16" />
                         </button>
                       </span>
                     </div>
@@ -252,14 +264,16 @@ function formatNextReview(card: any): { text: string; urgent: boolean } | null {
                           {{ c.difficulty || 'new' }}
                         </span>
                         <span v-if="formatNextReview(c)" class="next-review-badge" :class="{ due: formatNextReview(c)?.urgent }">
+                          <AlertCircle v-if="formatNextReview(c)?.urgent" :size="14" style="vertical-align: middle; margin-right: 2px;" />
+                          <Calendar v-else :size="14" style="vertical-align: middle; margin-right: 2px;" />
                           {{ formatNextReview(c)?.text }}
                         </span>
                         <span class="actions-col">
                           <button class="action-icon-btn" title="Edit" @click="cardForm = { show: true, card: c, deckId: c.deckId }">
-                            ✏️
+                            <Pencil :size="16" />
                           </button>
                           <button class="action-icon-btn danger" title="Delete" @click="handleDelete('card', c.id)">
-                            🗑️
+                            <Trash2 :size="16" />
                           </button>
                         </span>
                       </div>

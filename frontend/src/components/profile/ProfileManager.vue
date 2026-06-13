@@ -10,6 +10,7 @@ import {
   validateProfileName,
 } from '../../utils/storage'
 import RenameModal from '../modal/RenameModal.vue'
+import { Pencil, Trash2 } from '@lucide/vue'
 
 const props = defineProps<{
   currentProfile: any
@@ -100,7 +101,7 @@ function handleProfileSelect(e: Event) {
         @click="showRenameModal = true"
         title="Rename profile"
       >
-        ✏️ Rename
+        <Pencil :size="14" style="vertical-align: middle; margin-right: 4px;" /> Rename
       </button>
 
       <button
@@ -110,7 +111,7 @@ function handleProfileSelect(e: Event) {
         :disabled="getDecks(currentProfile.id).length > 0"
         :title="getDecks(currentProfile.id).length > 0 ? 'Cannot delete profile with decks' : 'Delete profile'"
       >
-        🗑️ Delete Profile
+        <Trash2 :size="14" style="vertical-align: middle; margin-right: 4px;" /> Delete Profile
       </button>
     </div>
 
@@ -149,9 +150,9 @@ function handleProfileSelect(e: Event) {
         </div>
 
         <div class="modal-actions">
-          <button class="cancel-btn" @click="showCreateModal = false">Cancel</button>
+          <button class="btn-ghost" @click="showCreateModal = false">Cancel</button>
           <button
-            class="create-btn"
+            class="btn-primary"
             @click="handleCreateProfile"
             :disabled="!newProfileName.trim()"
           >

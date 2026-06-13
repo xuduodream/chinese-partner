@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { getAvailableTargetProfiles, getProfileById, moveDeck } from '../../utils/storage'
+import { AlertTriangle } from '@lucide/vue'
 
 const props = defineProps<{
   deck: any
@@ -99,16 +100,16 @@ const selectedProfile = () => selectedProfileId.value ? getProfileById(selectedP
 
       <div class="move-confirmation">
         <p class="warning-text">
-          ⚠️ This will move the deck "{{ deck.name }}" and all its flashcards to the selected profile.
+          <AlertTriangle :size="16" style="display: inline; vertical-align: middle; margin-right: 4px;" /> This will move the deck "{{ deck.name }}" and all its flashcards to the selected profile.
         </p>
       </div>
 
       <div class="modal-actions">
-        <button class="cancel-btn" @click="emit('close')" :disabled="isMoving">
+        <button class="btn-ghost" @click="emit('close')" :disabled="isMoving">
           Cancel
         </button>
         <button
-          class="move-btn"
+          class="btn-primary"
           @click="handleMove"
           :disabled="!selectedProfileId || isMoving || availableProfiles.length === 0"
         >

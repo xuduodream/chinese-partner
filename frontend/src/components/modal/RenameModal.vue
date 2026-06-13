@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { Check } from '@lucide/vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -102,15 +103,15 @@ const isValid = () =>
           </div>
 
           <div v-if="validation.valid && newName.trim() !== '' && newName.trim() !== currentName" class="success-message">
-            ✓ Name is available
+            <Check :size="14" style="display: inline; vertical-align: middle; margin-right: 2px;" /> Name is available
           </div>
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="emit('close')" :disabled="isLoading">
+          <button type="button" class="btn-ghost" @click="emit('close')" :disabled="isLoading">
             Cancel
           </button>
-          <button type="submit" class="save-btn" :disabled="!isValid() || isLoading">
+          <button type="submit" class="btn-primary" :disabled="!isValid() || isLoading">
             {{ isLoading ? 'Saving...' : 'Save' }}
           </button>
         </div>

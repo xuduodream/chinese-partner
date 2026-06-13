@@ -6,6 +6,7 @@ import {
   moveCard,
   getAvailableTargetDecks,
 } from '../../utils/storage'
+import { ArrowLeft, Eye, Volume2, FolderOpen, Trash2 } from '@lucide/vue'
 
 const props = defineProps<{
   deck: any
@@ -73,8 +74,8 @@ function toggleCard(card: any) {
 <template>
   <div class="deck-review-page">
     <div class="deck-review-header">
-      <button class="back-btn" @click="props.onBack">
-        ← Back to Decks
+      <button class="btn-ghost" @click="props.onBack" style="margin-bottom: 8px;">
+        <ArrowLeft :size="16" /> Back to Decks
       </button>
       <h2>{{ deck.name }}</h2>
       <div class="deck-info">
@@ -94,8 +95,9 @@ function toggleCard(card: any) {
           <div class="review-front">
             <h3>{{ card.original }}</h3>
             <p class="pinyin">{{ card.pinyin }}</p>
-            <button class="action-pill show-details" @click="toggleCard(card)">
-              {{ selectedCard?.id === card.id ? '👁️ Hide' : '👁️ Show Explanation' }}
+            <button class="btn-ghost" @click="toggleCard(card)">
+              <Eye :size="16" />
+              {{ selectedCard?.id === card.id ? 'Hide' : 'Show Explanation' }}
             </button>
           </div>
 
@@ -111,22 +113,22 @@ function toggleCard(card: any) {
             <div class="card-bottom-actions">
               <div class="audio-section">
                 <button class="audio-btn" @click.stop="speak(card.original, 'zh-CN')" title="Listen to Chinese">
-                  🔊 Chinese
+                  <Volume2 :size="16" /> Chinese
                 </button>
                 <button
                   class="audio-btn"
                   @click.stop="speak(card.translation, card.targetLang === 'fr' ? 'fr-FR' : 'en-US')"
                   title="Listen to Translation"
                 >
-                  🔊 Translation
+                  <Volume2 :size="16" /> Translation
                 </button>
               </div>
               <div class="actions-col">
-                <button class="action-pill" @click.stop="handleMoveCard(card)" title="Move to another deck">
-                  📁 Move
+                <button class="btn-ghost" @click.stop="handleMoveCard(card)" title="Move to another deck">
+                  <FolderOpen :size="16" /> Move
                 </button>
-                <button class="action-pill danger" @click.stop="handleDelete(card.id)" title="Delete card">
-                  🗑️ Delete
+                <button class="btn-danger btn-sm" @click.stop="handleDelete(card.id)" title="Delete card">
+                  <Trash2 :size="14" /> Delete
                 </button>
               </div>
             </div>
@@ -156,11 +158,11 @@ function toggleCard(card: any) {
           </div>
 
           <div class="modal-actions">
-            <button class="cancel-btn" @click="showMoveModal = false; selectedTargetDeck = ''">
+            <button class="btn-ghost" @click="showMoveModal = false; selectedTargetDeck = ''">
               Cancel
             </button>
             <button
-              class="save-btn"
+              class="btn-primary"
               @click="selectedTargetDeck && handleMoveToDeck(selectedTargetDeck)"
               :disabled="!selectedTargetDeck"
             >
