@@ -6,3 +6,4 @@ pypinyin
 httpx
 python-dotenv
 python-multipart
+slowapi

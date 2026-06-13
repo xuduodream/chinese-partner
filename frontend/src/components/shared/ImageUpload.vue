@@ -17,6 +17,14 @@ const selectedImage = ref<string | null>(null)
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
 
+// API key used for authenticated requests (optional in dev mode)
+const API_KEY = import.meta.env.VITE_API_KEY || ''
+
+/** Return headers common to all API calls. */
+function authHeaders(): Record<string, string> {
+  return API_KEY ? { 'X-API-Key': API_KEY } : {}
+}
+
 async function handleImageUpload(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
@@ -41,7 +49,7 @@ async function handleImageUpload(event: Event) {
       `${import.meta.env.VITE_API_BASE_URL}/api/start-processing`,
       formData,
       {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data', ...authHeaders() },
         onUploadProgress: (progressEvent: any) => {
           const uploadPercent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
           const overallProgress = Math.round(uploadPercent * 0.15)
@@ -69,6 +77,7 @@ function startProgressPolling(jobId: string) {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/api/job-status/${jobId}`,
+        { headers: authHeaders() },
       )
       const jobStatus = response.data
 

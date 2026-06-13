@@ -50,10 +50,14 @@ uv venv
 source .venv/bin/activate
 uv pip install -r requirements.txt
 cp .env.example .env  # Add your LLM API key
-uv run python app.py
+
+# Start in development mode (no API key required, open CORS)
+ENVIRONMENT=development uv run python app.py
 ```
 
 The API server runs at `http://localhost:8000`.
+
+> **Security note:** In development mode (`ENVIRONMENT=development`), the API key check is skipped and CORS allows all origins. Set `ENVIRONMENT=production` when deploying to a remote server (see [Deployment](#deployment)).
 
 ### Frontend Setup
 
@@ -63,7 +67,25 @@ npm install
 npm run dev
 ```
 
-The dev server runs at `http://localhost:5173`.
+The dev server runs at `http://localhost:5173`. In development, Vite proxies `/api` requests to `http://localhost:8000`, avoiding CORS issues.
+
+### Environment Files
+
+The frontend uses Vite mode-based `.env` files:
+
+| File | Mode | Used by |
+|------|------|---------|
+| `.env.development` | `development` | `npm run dev` |
+| `.env.production` | `production` | `npm run build` |
+| `.env.local` | (overrides) | Any mode (gitignored) |
+
+Set `VITE_API_KEY` in `.env.local` so the frontend sends the `X-API-Key` header with all API requests:
+
+```bash
+echo 'VITE_API_KEY=your-api-key' >> frontend/.env.local
+```
+
+The key is optional in development mode but **required** when the backend runs in production.
 
 ### Mobile Testing
 
@@ -78,12 +100,16 @@ This uses the `VITE_API_BASE_URL` from `.env.development` (default: `http://192.
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/start-processing` | Upload image, returns job ID immediately |
-| `GET` | `/api/job-status/{job_id}` | Poll for real-time processing progress |
-| `POST` | `/api/process-image` | Legacy endpoint (blocking) |
-| `GET` | `/api/health` | Health check |
+All endpoints except `/api/health` require the `X-API-Key` header when the backend runs in production mode.
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/api/start-processing` | ✅ Required | Upload image, returns job ID immediately |
+| `GET` | `/api/job-status/{job_id}` | ✅ Required | Poll for real-time processing progress |
+| `POST` | `/api/process-image` | ✅ Required | Legacy endpoint (blocking) |
+| `GET` | `/api/health` | ❌ Public | Health check |
+
+> **Tip:** In development mode (`ENVIRONMENT=development`) the API key is not checked, so you can test without it.
 
 ### Processing Pipeline
 
@@ -157,23 +183,106 @@ Each review session provides four rating options (Again, Hard, Good, Easy) with 
 
 ## Deployment
 
+### Production Build
+
 ```bash
 # Build frontend for production
 cd frontend && npm run build
-# Output: frontend/dist/
+# Output: frontend/dist/ — serve this with nginx, Caddy, etc.
+```
 
-# Run backend on custom port
-cd backend && uvicorn app:app --host 0.0.0.0 --port 8000
+### Production Backend
+
+The backend supports two environments via the `ENVIRONMENT` variable. In production mode, it enforces API key authentication, restricted CORS, and rate limiting.
+
+```bash
+cd backend
+
+# Set required environment variables
+export ENVIRONMENT=production
+export API_KEY="generate-a-strong-random-key-here"
+export CORS_ORIGINS="https://your-frontend-domain.com"
+
+# Start with multiple workers
+uv run uvicorn app:app --host 127.0.0.1 --port 8000 --workers 4
+```
+
+> **Bind to 127.0.0.1** (not 0.0.0.0) so the backend is only reachable through your reverse proxy.
+
+### Recommended: Reverse Proxy with HTTPS
+
+For a remote server, place the backend behind **Caddy** or **nginx** for HTTPS termination and SSL certificates.
+
+**Caddy** (zero-config TLS, auto-provisions Let's Encrypt certs):
+
+```caddyfile
+your-domain.com {
+    reverse_proxy 127.0.0.1:8000
+}
+```
+
+**nginx**:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Local Testing
+
+```bash
+# Backend (dev mode — no API key required)
+cd backend
+ENVIRONMENT=development uv run python app.py
+
+# Frontend (Vite proxies /api to localhost:8000)
+cd frontend
+npm run dev
+
+# Direct API test
+curl http://localhost:8000/api/health
+
+# Upload test (no key needed in dev)
+curl -X POST http://localhost:8000/api/start-processing \
+  -F "file=@test.jpg" \
+  -F "lang=en"
 ```
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `LLM_API_KEY` | API key for the LLM provider | Yes |
-| `VITE_API_BASE_URL` | Backend API endpoint (frontend) | No (default: `http://localhost:8000`) |
-| `VITE_API_TIMEOUT` | API request timeout in ms | No |
-| `VITE_ENABLE_LOGGING` | Enable console logging | No |
+### Backend
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `LLM_API_KEY` | API key for the LLM provider | — | Yes |
+| `LLM_API_URL` | LLM API endpoint URL | `https://api.deepseek.com/chat/completions` | No |
+| `LLM_MODEL` | LLM model name | `deepseek-v4-flash` | No |
+| `ENVIRONMENT` | Runtime mode (`development`, `production`, `staging`) | `development` | No |
+| `API_KEY` | Secret key for API authentication (required in production) | — | Yes (prod) |
+| `CORS_ORIGINS` | Comma-separated allowed origins | `http://localhost:5173,http://localhost:4173` | No |
+| `RATE_LIMIT_PER_MINUTE` | Max API requests per minute per IP | `60` | No |
+| `MAX_FILE_SIZE_MB` | Max uploaded file size in MB | `10` | No |
+
+### Frontend
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `VITE_API_BASE_URL` | Backend API endpoint | `http://localhost:8000` | No |
+| `VITE_API_KEY` | API key sent as `X-API-Key` header | — | Yes (prod) |
+| `VITE_API_TIMEOUT` | API request timeout in ms | `30000` | No |
+| `VITE_ENABLE_LOGGING` | Enable console logging | `false` | No |
 
 ## License
 
